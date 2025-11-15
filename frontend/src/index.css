@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+  
+  body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  input, textarea {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    transition: all 0.2s ease, transform 0.1s ease;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600;
+    @apply focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600;
+    @apply focus:ring-gray-500;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700;
+    transition: all 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .card-hover {
+    @apply hover:shadow-md dark:hover:shadow-xl;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600;
+    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+    transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .input::placeholder {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+
+  .checkbox {
+    @apply w-5 h-5 rounded border-2 border-gray-300 dark:border-gray-600 cursor-pointer;
+    @apply transition-all duration-100;
+    @apply checked:bg-primary-600 checked:border-primary-600;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.15s ease-in;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.2s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.1s ease-out;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Focus mode styles */
+.focus-mode {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.focus-mode .card {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.focus-mode input,
+.focus-mode textarea {
+  @apply bg-gray-700 text-gray-100 border-gray-600;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Mobile Navigation */
+.mobile-bottom-nav {
+  @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+  
+  .mobile-sheet {
+    @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl z-50;
+    @apply max-h-[80vh] overflow-y-auto;
+  }
+  
+  /* Touch-friendly targets */
+  .mobile-tap-target {
+    @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
+  }
+}
+
+/* Swipe gestures visual feedback */
+.swipe-left {
+  animation: swipeLeft 0.3s ease-out;
+}
+
+.swipe-right {
+  animation: swipeRight 0.3s ease-out;
+}
+
+@keyframes swipeLeft {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes swipeRight {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}

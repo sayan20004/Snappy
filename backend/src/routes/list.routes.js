@@ -1,0 +1,46 @@
+import express from 'express';
+import { body } from 'express-validator';
+import {
+  getLists,
+  createList,
+  updateList,
+  deleteList,
+  inviteCollaborator
+} from '../controllers/list.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
+import { validate } from '../middleware/validate.middleware.js';
+
+const router = express.Router();
+
+// All routes require authentication
+router.use(authenticate);
+
+// Validation rules
+const createListValidation = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('List name is required')
+    .isLength({ max: 100 })
+    .withMessage('List name cannot exceed 100 characters')
+];
+
+const inviteValidation = [
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('Valid email is required'),
+  body('role')
+    .optional()
+    .isIn(['editor', 'viewer'])
+    .withMessage('Role must be editor or viewer')
+];
+
+// Routes
+router.get('/', getLists);
+router.post('/', createListValidation, validate, createList);
+router.patch('/:id', updateList);
+router.delete('/:id', deleteList);
+router.post('/:id/invite', inviteValidation, validate, inviteCollaborator);
+
+export default router;

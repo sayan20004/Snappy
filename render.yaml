@@ -9,9 +9,8 @@ services:
     runtime: node
     region: oregon
     plan: free
-    rootDir: backend
-    buildCommand: npm install --production
-    startCommand: node src/server.js
+    buildCommand: cd backend && npm install --omit=dev --no-workspaces
+    startCommand: cd backend && node src/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -34,9 +33,8 @@ services:
     runtime: static
     region: oregon
     plan: free
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    buildCommand: cd frontend && npm install --no-workspaces && npm run build
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:

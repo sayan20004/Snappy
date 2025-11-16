@@ -70,11 +70,11 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden"
+              className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
             >
               {/* Header */}
-              <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                   <FiFilter size={16} />
                   Advanced Filters
                 </h3>
@@ -104,8 +104,10 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                         onClick={() => updateFilter('energyLevel', value)}
                         className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                           localFilters.energyLevel === value
-                            ? `border-${color}-500 bg-${color}-50 text-${color}-700`
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? value === 'low' ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+                              value === 'medium' ? 'border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                              'border-red-500 bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {label}
@@ -116,7 +118,7 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
 
                 {/* Effort Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Estimated Effort
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -132,8 +134,8 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                         onClick={() => updateFilter('effortRange', value)}
                         className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
                           localFilters.effortRange === value
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {label}
@@ -144,7 +146,7 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
 
                 {/* Location */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location Context
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -159,8 +161,8 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                         onClick={() => updateFilter('location', value)}
                         className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                           localFilters.location === value
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {label}
@@ -171,7 +173,7 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
 
                 {/* Mood/Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Task Type
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -186,8 +188,8 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                         onClick={() => updateFilter('mood', value)}
                         className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                           localFilters.mood === value
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {label}
@@ -198,7 +200,7 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
 
                 {/* Deadline Horizon */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Deadline Horizon
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -213,8 +215,8 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                         onClick={() => updateFilter('deadlineHorizon', value)}
                         className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                           localFilters.deadlineHorizon === value
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {label}
@@ -224,8 +226,8 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                 </div>
 
                 {/* Quick Toggles */}
-                <div className="pt-2 border-t border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Quick Filters
                   </label>
                   <div className="space-y-2">
@@ -241,7 +243,7 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
                           onChange={(e) => setLocalFilters(prev => ({ ...prev, [key]: e.target.checked || null }))}
                           className="checkbox"
                         />
-                        <span className="text-sm text-gray-700">{label}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -249,17 +251,17 @@ export default function AdvancedFilters({ filters, onFilterChange, onReset }) {
               </div>
 
               {/* Footer Actions */}
-              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between">
                 <button
                   onClick={handleReset}
-                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
                 >
                   Reset All
                 </button>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>

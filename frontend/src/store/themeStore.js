@@ -1,35 +1,51 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Apply theme to DOM immediately
+const applyThemeToDOM = (theme) => {
+  const root = document.documentElement;
+  
+  if (theme === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
+};
+
 export const useThemeStore = create(
   persist(
-    (set) => ({
-      theme: 'light', // 'light' | 'dark' | 'system'
+    (set, get) => ({
+      theme: 'light',
       
       setTheme: (theme) => {
         set({ theme });
-        
-        // Apply theme to DOM
-        const root = document.documentElement;
-        if (theme === 'system') {
-          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          root.classList.toggle('dark', systemTheme === 'dark');
-        } else {
-          root.classList.toggle('dark', theme === 'dark');
-        }
+        applyThemeToDOM(theme);
       },
       
       toggleTheme: () => {
-        set((state) => {
-          const newTheme = state.theme === 'light' ? 'dark' : 'light';
-          const root = document.documentElement;
-          root.classList.toggle('dark', newTheme === 'dark');
-          return { theme: newTheme };
-        });
-      }
+        const currentTheme = get().theme;
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        set({ theme: newTheme });
+        applyThemeToDOM(newTheme);
+      },
     }),
     {
-      name: 'theme-storage'
+      name: 'theme-storage',
     }
   )
 );
+
+// Initialize theme on load
+if (typeof window !== 'undefined') {
+  const stored = localStorage.getItem('theme-storage');
+  if (stored) {
+    try {
+      const { state } = JSON.parse(stored);
+      if (state?.theme) {
+        applyThemeToDOM(state.theme);
+      }
+    } catch (e) {
+      console.error('Failed to parse theme:', e);
+    }
+  }
+}

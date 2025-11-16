@@ -6,6 +6,13 @@ import {
   updateTodo, 
   deleteTodo 
 } from '../controllers/todo.controller.js';
+import {
+  addComment,
+  updateComment,
+  deleteComment,
+  addReaction,
+  removeReaction
+} from '../controllers/comment.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
 
@@ -46,7 +53,7 @@ const updateTodoValidation = [
     .withMessage('Title cannot exceed 200 characters'),
   body('status')
     .optional()
-    .isIn(['todo', 'done', 'archived', 'snoozed'])
+    .isIn(['todo', 'in-progress', 'done', 'archived', 'snoozed'])
     .withMessage('Invalid status')
 ];
 
@@ -55,5 +62,27 @@ router.get('/', getTodos);
 router.post('/', createTodoValidation, validate, createTodo);
 router.patch('/:id', updateTodoValidation, validate, updateTodo);
 router.delete('/:id', deleteTodo);
+
+// Comment routes
+const commentValidation = [
+  body('text')
+    .trim()
+    .notEmpty()
+    .withMessage('Comment text is required')
+    .isLength({ max: 2000 })
+    .withMessage('Comment cannot exceed 2000 characters')
+];
+
+router.post('/:id/comments', commentValidation, validate, addComment);
+router.patch('/:id/comments/:commentId', commentValidation, validate, updateComment);
+router.delete('/:id/comments/:commentId', deleteComment);
+
+// Reaction routes
+router.post('/:id/comments/:commentId/reactions', 
+  body('type').isIn(['like', 'love', 'check', 'zap']).withMessage('Invalid reaction type'),
+  validate,
+  addReaction
+);
+router.delete('/:id/comments/:commentId/reactions', removeReaction);
 
 export default router;

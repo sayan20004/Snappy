@@ -89,7 +89,7 @@ export default function MainFeed() {
   }, [data?.todos, advancedFilters]);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900 dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-4">
         <div className="flex items-center justify-between">

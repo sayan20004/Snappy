@@ -56,24 +56,33 @@ export default function KanbanView({ todos }) {
           onDrop={(e) => handleDrop(e, column.id)}
         >
           {/* Column Header */}
-          <div className={`bg-${column.color}-50 border-2 border-${column.color}-200 rounded-lg p-4 mb-4`}>
+          <div className={`${
+            column.id === 'todo' ? 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700' :
+            column.id === 'in-progress' ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700' :
+            'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700'
+          } border-2 rounded-lg p-4 mb-4`}>
             <div className="flex items-center justify-between">
-              <h3 className={`font-semibold text-${column.color}-900 flex items-center gap-2`}>
+              <h3 className={`${
+                column.id === 'todo' ? 'text-gray-900 dark:text-gray-100' :
+                column.id === 'in-progress' ? 'text-blue-900 dark:text-blue-300' :
+                'text-green-900 dark:text-green-300'
+              } font-semibold flex items-center gap-2`}>
                 {column.title}
-                <span className={`text-xs px-2 py-1 rounded-full bg-${column.color}-200 text-${column.color}-700`}>
+                <span className={`${
+                  column.id === 'todo' ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' :
+                  column.id === 'in-progress' ? 'bg-blue-200 text-blue-700 dark:bg-blue-800 dark:text-blue-300' :
+                  'bg-green-200 text-green-700 dark:bg-green-800 dark:text-green-300'
+                } text-xs px-2 py-1 rounded-full`}>
                   {column.todos.length}
                 </span>
               </h3>
-              <button className={`p-1 hover:bg-${column.color}-100 rounded transition-colors`}>
-                <FiPlus size={16} />
-              </button>
             </div>
           </div>
 
           {/* Cards */}
           <div className="space-y-3 min-h-[200px]">
             {column.todos.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 text-sm">
+              <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
                 Drop tasks here
               </div>
             ) : (

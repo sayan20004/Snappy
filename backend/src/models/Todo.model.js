@@ -127,9 +127,15 @@ const TodoSchema = new mongoose.Schema({
   
   // Collaboration
   comments: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    text: String,
-    createdAt: { type: Date, default: Date.now }
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    text: { type: String, required: true, maxlength: 2000 },
+    mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    reactions: [{
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      type: { type: String, enum: ['like', 'love', 'check', 'zap'] }
+    }],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
   }],
   reactions: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -3,6 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --toast-bg: #fff;
+    --toast-color: #363636;
+  }
+
+  .dark {
+    --toast-bg: #1f2937;
+    --toast-color: #f9fafb;
+  }
+
   * {
     @apply border-gray-200 dark:border-gray-700;
   }

@@ -25,9 +25,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           position="top-right"
           toastOptions={{
             duration: 3000,
+            className: '',
             style: {
-              background: '#fff',
-              color: '#363636',
+              background: 'var(--toast-bg, #fff)',
+              color: 'var(--toast-color, #363636)',
             },
             success: {
               iconTheme: {

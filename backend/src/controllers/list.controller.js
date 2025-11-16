@@ -150,3 +150,64 @@ export const inviteCollaborator = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Remove collaborator from list
+// @route   DELETE /api/lists/:id/collaborators/:userId
+// @access  Private
+export const removeCollaborator = async (req, res, next) => {
+  try {
+    const { id, userId } = req.params;
+
+    const list = await List.findOne({ _id: id, owner: req.userId });
+    
+    if (!list) {
+      throw new AppError('List not found or not owner', 404);
+    }
+
+    // Remove collaborator
+    list.collaborators = list.collaborators.filter(
+      c => c.userId.toString() !== userId
+    );
+
+    await list.save();
+    await list.populate('collaborators.userId', 'name email avatarUrl');
+
+    res.json({ list });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update collaborator role
+// @route   PATCH /api/lists/:id/collaborators/:userId
+// @access  Private
+export const updateCollaboratorRole = async (req, res, next) => {
+  try {
+    const { id, userId } = req.params;
+    const { role } = req.body;
+
+    const list = await List.findOne({ _id: id, owner: req.userId });
+    
+    if (!list) {
+      throw new AppError('List not found or not owner', 404);
+    }
+
+    // Update role
+    const collaborator = list.collaborators.find(
+      c => c.userId.toString() === userId
+    );
+
+    if (!collaborator) {
+      throw new AppError('Collaborator not found', 404);
+    }
+
+    collaborator.role = role;
+
+    await list.save();
+    await list.populate('collaborators.userId', 'name email avatarUrl');
+
+    res.json({ list });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCreateTodo } from '../hooks/useTodos';
-import { FiPlus, FiLink, FiList, FiClock, FiZap, FiMapPin, FiBattery } from 'react-icons/fi';
+import { FiPlus, FiLink, FiList, FiClock, FiZap, FiMapPin, FiBattery, FiSettings } from 'react-icons/fi';
 
 export default function EnhancedQuickAdd({ listId }) {
   const [title, setTitle] = useState('');
@@ -17,6 +17,8 @@ export default function EnhancedQuickAdd({ listId }) {
   const [location, setLocation] = useState('anywhere');
   const [mood, setMood] = useState('administrative');
   const [bestTime, setBestTime] = useState('');
+  const [showCustomTime, setShowCustomTime] = useState(false);
+  const [customEffort, setCustomEffort] = useState('');
   
   const inputRef = useRef(null);
   const createTodoMutation = useCreateTodo();
@@ -154,25 +156,83 @@ export default function EnhancedQuickAdd({ listId }) {
           </div>
 
           {/* Effort Quick Select */}
-          <select
-            value={effortMinutes}
-            onChange={(e) => setEffortMinutes(e.target.value)}
-            className="text-xs px-2 py-1 border rounded-lg text-gray-600"
-          >
-            <option value={2}>2 mins</option>
-            <option value={5}>5 mins</option>
-            <option value={15}>15 mins</option>
-            <option value={30}>30 mins</option>
-            <option value={60}>1 hour</option>
-          </select>
+          <div className="flex items-center gap-1">
+            <select
+              value={effortMinutes}
+              onChange={(e) => setEffortMinutes(e.target.value)}
+              className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800"
+            >
+              <option value={2}>2 mins</option>
+              <option value={5}>5 mins</option>
+              <option value={15}>15 mins</option>
+              <option value={30}>30 mins</option>
+              <option value={60}>1 hour</option>
+              <option value={120}>2 hours</option>
+              <option value={180}>3 hours</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowCustomTime(!showCustomTime)}
+              className="text-xs p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Customize time"
+            >
+              <FiSettings size={14} />
+            </button>
+          </div>
         </div>
+
+        {/* Custom Time Period Input */}
+        {showCustomTime && (
+          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 animate-slide-up">
+            <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              Custom Time Period (minutes)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={customEffort}
+                onChange={(e) => setCustomEffort(e.target.value)}
+                placeholder="e.g., 45"
+                min="1"
+                max="480"
+                className="input flex-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (customEffort && parseInt(customEffort) > 0) {
+                    setEffortMinutes(parseInt(customEffort));
+                    setShowCustomTime(false);
+                    setCustomEffort('');
+                  }
+                }}
+                className="btn btn-primary text-xs px-4"
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCustomTime(false);
+                  setCustomEffort('');
+                }}
+                className="btn text-xs px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Enter any value between 1 and 480 minutes (8 hours)
+            </p>
+          </div>
+        )}
 
         {/* Advanced Context Panel */}
         {showAdvanced && (
-          <div className="mt-4 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200 animate-slide-up">
+          <div className="mt-4 space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 animate-slide-up">
             {/* Note */}
             <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Notes</label>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Notes</label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}

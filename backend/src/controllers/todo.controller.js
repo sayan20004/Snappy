@@ -122,11 +122,27 @@ export const updateTodo = async (req, res, next) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Find todo and verify ownership
-    const todo = await Todo.findOne({ _id: id, owner: req.userId });
+    // Find todo
+    const todo = await Todo.findById(id);
     
     if (!todo) {
       throw new AppError('Todo not found', 404);
+    }
+
+    // Check if user has permission to edit
+    const isOwner = todo.owner.toString() === req.userId.toString();
+    let hasListAccess = false;
+    
+    if (todo.listId && !isOwner) {
+      const list = await List.findById(todo.listId);
+      if (list) {
+        hasListAccess = list.canEdit(req.userId);
+      }
+    }
+    
+    // Allow update if owner OR has list access OR if listId is null (inbox items)
+    if (!isOwner && !hasListAccess && todo.listId !== null) {
+      throw new AppError('Permission denied', 403);
     }
 
     // Apply updates
@@ -188,11 +204,30 @@ export const deleteTodo = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const todo = await Todo.findOneAndDelete({ _id: id, owner: req.userId });
+    // Find todo
+    const todo = await Todo.findById(id);
     
     if (!todo) {
       throw new AppError('Todo not found', 404);
     }
+
+    // Check if user has permission to delete
+    const isOwner = todo.owner.toString() === req.userId.toString();
+    let hasListAccess = false;
+    
+    if (todo.listId && !isOwner) {
+      const list = await List.findById(todo.listId);
+      if (list) {
+        hasListAccess = list.canEdit(req.userId);
+      }
+    }
+    
+    // Allow delete if owner OR has list access OR if listId is null (inbox items)
+    if (!isOwner && !hasListAccess && todo.listId !== null) {
+      throw new AppError('Permission denied', 403);
+    }
+
+    await todo.deleteOne();
 
     // Log activity
     await Activity.create({

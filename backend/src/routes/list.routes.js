@@ -5,7 +5,9 @@ import {
   createList,
   updateList,
   deleteList,
-  inviteCollaborator
+  inviteCollaborator,
+  removeCollaborator,
+  updateCollaboratorRole
 } from '../controllers/list.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
@@ -42,5 +44,7 @@ router.post('/', createListValidation, validate, createList);
 router.patch('/:id', updateList);
 router.delete('/:id', deleteList);
 router.post('/:id/invite', inviteValidation, validate, inviteCollaborator);
+router.delete('/:id/collaborators/:userId', removeCollaborator);
+router.patch('/:id/collaborators/:userId', updateCollaboratorRole);
 
 export default router;

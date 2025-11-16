@@ -10,8 +10,18 @@ import authRoutes from './routes/auth.routes.js';
 import todoRoutes from './routes/todo.routes.js';
 import listRoutes from './routes/list.routes.js';
 import userRoutes from './routes/user.routes.js';
+import activityRoutes from './routes/activity.routes.js';
+import templateRoutes from './routes/template.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
+import exportRoutes from './routes/export.routes.js';
+import focusRoutes from './routes/focus.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { setupSocketHandlers } from './socket/handlers.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -42,11 +52,20 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/activities', activityRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/import', exportRoutes);
+app.use('/api/focus', focusRoutes);
 
 // Socket.io setup
 setupSocketHandlers(io);

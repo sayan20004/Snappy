@@ -118,14 +118,17 @@ const matchesFilters = (todo, filters) => {
 export default function AdvancedSearch({ onResultClick }) {
   const [query, setQuery] = useState('');
   const [showHelp, setShowHelp] = useState(false);
-  const { data: todos = [] } = useTodos();
-  const { data: lists = [] } = useLists();
+  const { data: todosData } = useTodos();
+  const { data: listsData } = useLists();
 
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
 
+    const todos = todosData?.todos || [];
+    const lists = listsData?.lists || [];
     const filters = parseSearchQuery(query);
-    const allTodos = todos.flatMap(todo => {
+    
+    const allTodos = todos.map(todo => {
       const list = lists.find(l => l._id === todo.listId);
       return {
         ...todo,
@@ -136,7 +139,7 @@ export default function AdvancedSearch({ onResultClick }) {
     return allTodos
       .filter(todo => matchesFilters(todo, filters))
       .slice(0, 20); // Limit results
-  }, [query, todos, lists]);
+  }, [query, todosData, listsData]);
 
   const handleClear = () => {
     setQuery('');

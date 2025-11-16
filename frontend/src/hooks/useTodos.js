@@ -56,24 +56,14 @@ export const useUpdateTodo = () => {
 
   return useMutation({
     mutationFn: ({ id, data }) => todosAPI.updateTodo(id, data),
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: ['todos'] });
-      const previousTodos = queryClient.getQueryData(['todos']);
-
-      queryClient.setQueryData(['todos'], (old) => ({
-        ...old,
-        todos: old?.todos.map((todo) =>
-          todo._id === id ? { ...todo, ...data } : todo
-        ),
-      }));
-
-      return { previousTodos };
+    onSuccess: (response) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
     },
-    onError: (err, variables, context) => {
-      queryClient.setQueryData(['todos'], context.previousTodos);
-      toast.error('Failed to update todo');
-    },
-    onSettled: () => {
+    onError: (err) => {
+      toast.error(err?.response?.data?.error || 'Failed to update todo');
+      // Refetch to ensure correct state
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });

@@ -4,6 +4,7 @@ import { usersAPI, listsAPI } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FiUser, FiUserPlus, FiSearch, FiX, FiCheck } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { getFullAvatarUrl } from '../utils/avatarUrl';
 
 export default function CollaborationPresence({ listId }) {
   const { user } = useAuthStore();
@@ -53,7 +54,7 @@ export default function CollaborationPresence({ listId }) {
         .map((u, idx) => ({
           id: u._id,
           name: u.name,
-          avatar: u.avatarUrl,
+          avatar: getFullAvatarUrl(u.avatarUrl),
           color: ['bg-blue-500', 'bg-green-500', 'bg-purple-500'][idx % 3],
           cursor: { x: 120 + idx * 200, y: 340 - idx * 100 }
         }));

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 import { FiUser, FiMail, FiCamera, FiLink, FiSave, FiX } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { getFullAvatarUrl } from '../utils/avatarUrl';
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -15,7 +16,15 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
   const [avatarMethod, setAvatarMethod] = useState('upload'); // 'upload' or 'link'
   const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user?.avatarUrl || '');
+  
+  const initialAvatarUrl = getFullAvatarUrl(user?.avatarUrl);
+  console.log('🖼️ Avatar Debug:', {
+    userAvatarUrl: user?.avatarUrl,
+    fullAvatarUrl: initialAvatarUrl,
+    userName: user?.name
+  });
+  
+  const [previewUrl, setPreviewUrl] = useState(initialAvatarUrl);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
@@ -44,7 +53,13 @@ export default function ProfilePage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['user']);
       useAuthStore.getState().updateUser(data.user);
-      setPreviewUrl(data.avatarUrl);
+      const fullAvatarUrl = getFullAvatarUrl(data.avatarUrl);
+      console.log('✅ Avatar uploaded:', {
+        returnedUrl: data.avatarUrl,
+        fullUrl: fullAvatarUrl,
+        userData: data.user
+      });
+      setPreviewUrl(fullAvatarUrl);
       setAvatarUrl(data.avatarUrl);
       toast.success('Avatar uploaded successfully!');
     },

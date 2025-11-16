@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { FiZap, FiTarget, FiClock, FiCloud, FiShield, FiUsers, FiCheck, FiArrowRight, FiStar, FiTrendingUp, FiLayout, FiCpu } from 'react-icons/fi';
 
@@ -71,6 +72,12 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      <Helmet>
+        <title>Snappy Todo — Ultra-Fast Task Management App | Brain-Dump Your Life</title>
+        <meta name="description" content="A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, focus modes, and real-time sync. Organize your life effortlessly." />
+        <link rel="canonical" href="https://snappy-todo.com" />
+      </Helmet>
+
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -6,6 +6,7 @@ import { useLists, useCreateList, useUpdateList, useDeleteList } from '../hooks/
 import { FiMenu, FiPlus, FiLogOut, FiHome, FiStar, FiCalendar, FiActivity, FiInbox, FiZap, FiMoon, FiSun, FiCopy, FiX, FiEdit2, FiTrash2, FiUser } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { getFullAvatarUrl } from '../utils/avatarUrl';
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
@@ -257,7 +258,7 @@ export default function Sidebar() {
                 >
                   {user?.avatarUrl ? (
                     <img
-                      src={user.avatarUrl}
+                      src={getFullAvatarUrl(user.avatarUrl)}
                       alt={user.name}
                       className="w-8 h-8 rounded-full object-cover"
                     />

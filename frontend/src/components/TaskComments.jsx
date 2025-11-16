@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { getUsers } from '../api/users';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
+import { getFullAvatarUrl } from '../utils/avatarUrl';
 
 const REACTIONS = [
   { type: 'like', icon: FiThumbsUp, label: 'Like', color: 'text-blue-500' },
@@ -91,7 +92,7 @@ export default function TaskComments({ task, onUpdate }) {
       author: { 
         id: currentUser?._id || currentUser?.id, 
         name: currentUser?.name || 'You', 
-        avatar: currentUser?.avatarUrl || '👤' 
+        avatar: getFullAvatarUrl(currentUser?.avatarUrl) || '👤' 
       },
       mentions,
       reactions: [],

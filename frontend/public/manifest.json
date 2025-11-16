@@ -1,0 +1,55 @@
+{
+  "name": "Snappy Todo — Ultra-Fast Task Management",
+  "short_name": "Snappy",
+  "description": "A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, and focus modes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Dashboard View"
+    },
+    {
+      "src": "/screenshot-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Focus Mode"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "/dashboard?action=quickadd",
+      "icons": [{ "src": "/icon-add-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Focus Mode",
+      "short_name": "Focus",
+      "description": "Start focus mode",
+      "url": "/focus",
+      "icons": [{ "src": "/icon-focus-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

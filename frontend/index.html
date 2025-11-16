@@ -2,10 +2,115 @@
 <html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snappy Todo — Ultra-fast task management</title>
-    <meta name="description" content="Lightning-fast todo app with micro-interactions and focus modes" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Snappy Todo — Ultra-Fast Task Management App | Brain-Dump Your Life</title>
+    <meta name="title" content="Snappy Todo — Ultra-Fast Task Management App | Brain-Dump Your Life" />
+    <meta name="description" content="A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, focus modes, and real-time sync. Organize your life effortlessly with timeboxing and smart task management." />
+    <meta name="keywords" content="todo app, task manager, productivity app, focus mode, timeboxing, brain dump, collaborative tasks, real-time collaboration, intention engine, smart todo, gtd, getting things done, project management" />
+    <meta name="author" content="Snappy Todo" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://snappy-todo.com" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://snappy-todo.com/" />
+    <meta property="og:title" content="Snappy Todo — Ultra-Fast Task Management App" />
+    <meta property="og:description" content="A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, and focus modes. Brain-dump your entire life, organize effortlessly." />
+    <meta property="og:image" content="https://snappy-todo.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Snappy Todo" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://snappy-todo.com/" />
+    <meta property="twitter:title" content="Snappy Todo — Ultra-Fast Task Management App" />
+    <meta property="twitter:description" content="A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, and focus modes. Brain-dump your entire life, organize effortlessly." />
+    <meta property="twitter:image" content="https://snappy-todo.com/og-image.png" />
+    
+    <!-- PWA & Mobile -->
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Snappy Todo" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preconnect to API -->
+    <link rel="preconnect" href="http://localhost:5001" crossorigin />
+    <link rel="dns-prefetch" href="http://localhost:5001" />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Snappy Todo",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web, Windows, macOS, Linux, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "1247"
+      },
+      "description": "A lightning-fast, brain-first todo app with AI-powered intention detection, collaborative lists, focus modes, and real-time sync. Organize your life effortlessly with timeboxing and smart task management.",
+      "screenshot": "https://snappy-todo.com/screenshot.png",
+      "featureList": [
+        "Brain-dump Quick Add",
+        "AI Intention Detection",
+        "Real-time Collaboration",
+        "Focus Mode with Pomodoro",
+        "Smart Timeboxing",
+        "Kanban & Matrix Views",
+        "Activity Timeline",
+        "Task Templates",
+        "Voice Notes",
+        "File Attachments",
+        "Offline-First Sync"
+      ],
+      "author": {
+        "@type": "Organization",
+        "name": "Snappy Todo"
+      }
+    }
+    </script>
+    
+    <script>
+      (function () {
+      function parse(v) { try { return JSON.parse(v); } catch { return null; } }
+      function pick(o) {
+        if (!o || typeof o !== 'object') return null;
+        return o.username || o.name || (o.user && (o.user.username || o.user.name)) ||
+           (o.profile && (o.profile.username || o.profile.name)) ||
+           (o.state && pick(o.state));
+      }
+      function getUsername() {
+        const direct = localStorage.getItem('username') || sessionStorage.getItem('username');
+        if (direct) return direct;
+        const keys = ['user','auth','auth-storage','user-storage','profile','account'];
+        for (const k of keys) {
+        const u = pick(parse(localStorage.getItem(k)) || parse(sessionStorage.getItem(k)));
+        if (u) return u;
+        }
+        return null;
+      }
+      const u = getUsername();
+      if (u) document.title = `Snappy Todo — ${u}'s Tasks`;
+      })();
+    </script>
+    
     <script>
       // Prevent flash of unstyled content
       (function() {

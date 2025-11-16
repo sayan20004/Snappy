@@ -1,0 +1,15 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin/auth pages
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /dashboard
+
+# Sitemap location
+Sitemap: https://snappy-todo.com/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

@@ -1,0 +1,51 @@
+# render.yaml - Render Blueprint for One-Click Deploy
+services:
+  # MongoDB (you'll need to use MongoDB Atlas free tier)
+  # Sign up at https://www.mongodb.com/cloud/atlas
+  
+  # Backend API
+  - type: web
+    name: snappy-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: MONGODB_URI
+        sync: false  # You'll add this manually from MongoDB Atlas
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: snappy-frontend
+          property: host
+    healthCheckPath: /health
+    
+  # Frontend Web App
+  - type: web
+    name: snappy-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: snappy-backend
+          property: host
+          envVarKey: VITE_API_URL
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache

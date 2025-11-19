@@ -74,7 +74,7 @@ export const getCurrentUser = async (req, res, next) => {
 // @access  Private
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, avatarUrl } = req.body;
+    const { name, avatarUrl, settings } = req.body;
 
     const user = await User.findById(req.userId);
 
@@ -85,6 +85,11 @@ export const updateProfile = async (req, res, next) => {
     // Update fields
     if (name) user.name = name;
     if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+    if (settings) {
+      if (!user.settings) user.settings = {};
+      if (settings.aiEnabled !== undefined) user.settings.aiEnabled = settings.aiEnabled;
+      if (settings.multimediaEnabled !== undefined) user.settings.multimediaEnabled = settings.multimediaEnabled;
+    }
 
     await user.save();
 
@@ -94,6 +99,7 @@ export const updateProfile = async (req, res, next) => {
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl,
+        settings: user.settings,
         createdAt: user.createdAt
       }
     });
@@ -127,7 +133,8 @@ export const uploadAvatar = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        avatarUrl: user.avatarUrl
+        avatarUrl: user.avatarUrl,
+        settings: user.settings
       }
     });
   } catch (error) {

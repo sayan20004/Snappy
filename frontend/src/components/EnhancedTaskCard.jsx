@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { useUpdateTodo, useDeleteTodo } from '../hooks/useTodos';
+import { useAuthStore } from '../store/authStore';
 import { FiTrash2, FiEdit2, FiCheck, FiMoreVertical, FiLink, FiList, FiClock, FiBattery, FiMapPin, FiChevronDown, FiChevronRight, FiMessageCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import TaskComments from './TaskComments';
+import AITaskAssistant from './AITaskAssistant';
+import { AiOutlineRobot } from 'react-icons/ai';
 
 export default function EnhancedTaskCard({ todo }) {
+  const { user } = useAuthStore();
+  const aiEnabled = user?.settings?.aiEnabled ?? true;
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
   const [showMenu, setShowMenu] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
@@ -311,7 +317,16 @@ export default function EnhancedTaskCard({ todo }) {
         <div className={`w-1 h-8 rounded flex-shrink-0 ${priorityColors[todo.priority || 2]}`} />
 
         {/* Actions */}
-        <div className="relative flex-shrink-0">
+        <div className="relative flex-shrink-0 flex items-center gap-2">
+          {aiEnabled && (
+            <button
+              onClick={() => setShowAIAssistant(true)}
+              className="p-1.5 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded transition-colors text-purple-600 dark:text-purple-400"
+              title="AI Assistant"
+            >
+              <AiOutlineRobot size={18} />
+            </button>
+          )}
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -342,6 +357,15 @@ export default function EnhancedTaskCard({ todo }) {
           )}
         </div>
       </div>
+
+      {/* AI Assistant Modal */}
+      {aiEnabled && (
+        <AITaskAssistant 
+          task={todo} 
+          isOpen={showAIAssistant} 
+          onClose={() => setShowAIAssistant(false)} 
+        />
+      )}
     </motion.div>
   );
 }

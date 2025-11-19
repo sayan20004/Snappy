@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCreateTodo } from '../hooks/useTodos';
-import { FiPlus, FiLink, FiList, FiClock, FiZap, FiMapPin, FiBattery, FiSettings } from 'react-icons/fi';
+import { useAuthStore } from '../store/authStore';
+import { FiPlus, FiLink, FiList, FiClock, FiZap, FiMapPin, FiBattery, FiSettings, FiMic } from 'react-icons/fi';
 
 export default function EnhancedQuickAdd({ listId }) {
+  const { user } = useAuthStore();
+  const multimediaEnabled = user?.settings?.multimediaEnabled ?? true;
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognition, setRecognition] = useState(null);
   
   // Advanced fields
   const [links, setLinks] = useState([]);
@@ -22,6 +27,49 @@ export default function EnhancedQuickAdd({ listId }) {
   
   const inputRef = useRef(null);
   const createTodoMutation = useCreateTodo();
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setTitle(transcript);
+        setIsRecording(false);
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+
+      recognitionInstance.onend = () => {
+        setIsRecording(false);
+      };
+
+      setRecognition(recognitionInstance);
+    }
+  }, []);
+
+  const toggleVoiceInput = () => {
+    if (!recognition) {
+      alert('Voice input is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      recognition.start();
+      setIsRecording(true);
+    }
+  };
 
   // Global shortcut: Ctrl+Shift+T
   useEffect(() => {
@@ -111,6 +159,20 @@ export default function EnhancedQuickAdd({ listId }) {
             className="input flex-1 text-base bg-gray-800 dark:bg-gray-900 text-gray-100 border-gray-600 dark:border-gray-700 placeholder:text-gray-500"
             autoComplete="off"
           />
+          {multimediaEnabled && (
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              className={`btn px-4 flex items-center gap-2 transition-colors ${
+                isRecording
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                  : 'btn-secondary'
+              }`}
+              title={isRecording ? 'Stop recording' : 'Voice input'}
+            >
+              <FiMic size={18} />
+            </button>
+          )}
           <button
             type="submit"
             disabled={!title.trim() || createTodoMutation.isPending}

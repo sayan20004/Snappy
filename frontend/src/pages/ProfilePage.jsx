@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
-import { FiUser, FiMail, FiCamera, FiLink, FiSave, FiX } from 'react-icons/fi';
+import { FiUser, FiMail, FiCamera, FiLink, FiSave, FiX, FiZap, FiImage } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import { getFullAvatarUrl } from '../utils/avatarUrl';
 
@@ -16,6 +16,8 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
   const [avatarMethod, setAvatarMethod] = useState('upload'); // 'upload' or 'link'
   const [imageFile, setImageFile] = useState(null);
+  const [aiEnabled, setAiEnabled] = useState(user?.settings?.aiEnabled ?? true);
+  const [multimediaEnabled, setMultimediaEnabled] = useState(user?.settings?.multimediaEnabled ?? true);
   
   const initialAvatarUrl = getFullAvatarUrl(user?.avatarUrl);
   console.log('🖼️ Avatar Debug:', {
@@ -104,7 +106,11 @@ export default function ProfilePage() {
 
     await updateProfileMutation.mutateAsync({
       name,
-      avatarUrl: avatarMethod === 'link' ? avatarUrl : undefined
+      avatarUrl: avatarMethod === 'link' ? avatarUrl : undefined,
+      settings: {
+        aiEnabled,
+        multimediaEnabled
+      }
     });
   };
 
@@ -237,6 +243,71 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Email cannot be changed
               </p>
+            </div>
+
+            {/* Feature Toggles */}
+            <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Feature Settings
+              </h3>
+              
+              {/* AI Features Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <FiZap className="text-purple-600 dark:text-purple-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                      AI Features
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      AI suggestions, task assistant, and smart features
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAiEnabled(!aiEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    aiEnabled ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      aiEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Multimedia Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <FiImage className="text-blue-600 dark:text-blue-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                      Multimedia Features
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Image uploads, voice input, and file attachments
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMultimediaEnabled(!multimediaEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    multimediaEnabled ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      multimediaEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Action Buttons */}

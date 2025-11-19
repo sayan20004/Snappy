@@ -2,7 +2,7 @@
 <html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
     <!-- Primary Meta Tags -->
     <title>Snappy Todo — Ultra-Fast Task Management App | Brain-Dump Your Life</title>
@@ -112,8 +112,11 @@
     </script>
     
     <script>
-      // Prevent flash of unstyled content
+      // Prevent flash of unstyled content (Safari optimized)
       (function() {
+        // Block theme switching during initial load
+        var isInitialLoad = true;
+        
         try {
           const stored = localStorage.getItem('theme-storage');
           if (stored) {
@@ -122,8 +125,23 @@
               document.documentElement.classList.add('dark');
             }
           }
+          // Add loaded class after DOM ready to enable transitions
+          var addLoadedClass = function() {
+            setTimeout(function() {
+              document.body.classList.add('loaded');
+              isInitialLoad = false;
+            }, 150);
+          };
+          
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addLoadedClass);
+          } else {
+            addLoadedClass();
+          }
         } catch (e) {
           console.error('Theme init error:', e);
+          document.body.classList.add('loaded');
+          isInitialLoad = false;
         }
       })();
     </script>

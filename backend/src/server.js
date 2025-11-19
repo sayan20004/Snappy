@@ -1,10 +1,10 @@
+import './config/env.js'; // Load env vars FIRST
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import authRoutes from './routes/auth.routes.js';
 import todoRoutes from './routes/todo.routes.js';
@@ -15,6 +15,7 @@ import templateRoutes from './routes/template.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import focusRoutes from './routes/focus.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import path from 'path';
@@ -23,13 +24,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config();
-
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true
   }
 });
@@ -43,7 +42,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }));
 app.use(express.json());
@@ -68,6 +67,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/import', exportRoutes);
 app.use('/api/focus', focusRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Socket.io setup
 setupSocketHandlers(io);

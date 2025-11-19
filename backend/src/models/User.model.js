@@ -27,6 +27,16 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  settings: {
+    aiEnabled: {
+      type: Boolean,
+      default: true
+    },
+    multimediaEnabled: {
+      type: Boolean,
+      default: true
+    }
+  },
   createdAt: {
     type: Date,
     default: Date.now

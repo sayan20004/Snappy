@@ -19,10 +19,18 @@ export default function Register() {
     onSuccess: (data) => {
       setAuth(data.user, data.token);
       toast.success('Account created successfully!');
-      navigate('/');
+      // Small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 10);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.error || 'Registration failed');
+      console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Registration failed';
+      toast.error(errorMessage);
     },
   });
 

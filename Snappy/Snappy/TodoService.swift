@@ -20,7 +20,7 @@ final class TodoService: ObservableObject {
         DispatchQueue.main.async { self.todos = resp.todos }
     }
 
-    func createTodo(title: String, note: String? = nil, listId: String? = nil, 
+    func createTodo(title: String, note: String? = nil, listId: String? = nil,
                    priority: Int? = nil, tags: [String]? = nil, dueAt: Date? = nil,
                    energyLevel: String? = nil, effortMinutes: Int? = nil) async throws {
         var payload: [String: Any] = ["title": title]
@@ -78,4 +78,3 @@ final class TodoService: ObservableObject {
         }
     }
 }
-

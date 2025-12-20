@@ -1,116 +1,173 @@
 import SwiftUI
 import Combine
+
 struct TodoDetailView: View {
-    var todo: Todo
+    @State var todo: Todo
     @State private var editingNote: String = ""
     @State private var isSaving = false
     @State private var showingComments = false
     @State private var showingFocus = false
 
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Title")) {
-                    Text(todo.title).font(.headline)
-                }
-                
-                Section(header: Text("Note")) {
-                    TextEditor(text: $editingNote)
-                        .frame(minHeight: 120)
-                }
+        // Using a Group helps the compiler manage the number of views
+        Form {
+            titleSection
+            noteSection
+            statusSection
+            subStepsSection
+            linksSection
+            detailsSection
+            actionsSection
+        }
+        .navigationTitle("Task Details")
+        .onAppear {
+            editingNote = todo.note ?? ""
+        }
+        .sheet(isPresented: $showingComments) {
+            CommentsView(todo: $todo)
+        }
+        .sheet(isPresented: $showingFocus) {
+            FocusSessionView(todoId: todo.id)
+        }
+    }
 
-                // STATUS + PRIORITY
-                Section(header: Text("Status & Priority")) {
-                    Picker("Status", selection: Binding(
-                        get: { todo.status ?? "todo" },
-                        set: { updateField("status", value: $0) }
-                    )) {
-                        Text("📋 To Do").tag("todo")
-                        Text("🔄 In Progress").tag("in-progress")
-                        Text("✅ Done").tag("done")
-                        Text("📦 Archived").tag("archived")
-                        Text("💤 Snoozed").tag("snoozed")
-                    }
+    // MARK: - View Sections
+    
+    private var titleSection: some View {
+        Section {
+            Text(todo.title).font(.headline)
+        } header: {
+            Text("Title")
+        }
+    }
 
-                    Picker("Priority", selection: Binding(
-                        get: { todo.priority ?? 2 },
-                        set: { updateField("priority", value: $0) }
-                    )) {
-                        Text("🔴 Urgent").tag(0)
-                        Text("🟠 High").tag(1)
-                        Text("🔵 Normal").tag(2)
-                        Text("⚪️ Low").tag(3)
-                    }
-                }
+    private var noteSection: some View {
+        Section {
+            TextEditor(text: $editingNote)
+                .frame(minHeight: 120)
+        } header: {
+            Text("Note")
+        }
+    }
 
-                // SUBSTEPS
-                if let subSteps = todo.subSteps, !subSteps.isEmpty {
-                    Section(header: Text("Sub-steps")) {
-                        ForEach(subSteps) { step in
-                            HStack {
-                                Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(step.completed ? .green : .gray)
-                                Text(step.text)
-                            }
+    private var statusSection: some View {
+        Section {
+            Picker("Status", selection: statusBinding) {
+                Text("📋 To Do").tag("todo")
+                Text("🔄 In Progress").tag("in-progress")
+                Text("✅ Done").tag("done")
+                Text("📦 Archived").tag("archived")
+                Text("💤 Snoozed").tag("snoozed")
+            }
+
+            Picker("Priority", selection: priorityBinding) {
+                Text("🔴 Urgent").tag(0)
+                Text("🟠 High").tag(1)
+                Text("🔵 Normal").tag(2)
+                Text("⚪️ Low").tag(3)
+            }
+        } header: {
+            Text("Status & Priority")
+        }
+    }
+
+    private var subStepsSection: some View {
+        Group {
+            if let subSteps = todo.subSteps, !subSteps.isEmpty {
+                Section {
+                    ForEach(subSteps) { step in
+                        HStack {
+                            Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(step.completed ? .green : .gray)
+                            Text(step.text)
                         }
                     }
+                } header: {
+                    Text("Sub-steps")
                 }
-
-                // LINKS
-                if let links = todo.links, !links.isEmpty {
-                    Section(header: Text("Links")) {
-                        ForEach(links) { link in
-                            Link(link.title ?? link.url, destination: URL(string: link.url)!)
-                        }
-                    }
-                }
-
-                // DETAILS
-                Section(header: Text("Details")) {
-                    if let energyLevel = todo.energyLevel {
-                        LabeledContent("Energy", value: energyLevel.capitalized)
-                    }
-                    if let effortMinutes = todo.effortMinutes {
-                        LabeledContent("Effort", value: "\(effortMinutes) min")
-                    }
-                    if let location = todo.location {
-                        LabeledContent("Location", value: location)
-                    }
-                }
-
-                // ACTIONS
-                Section(header: Text("Actions")) {
-                    Button(action: { showingFocus = true }) {
-                        Label("Start Focus Session", systemImage: "timer")
-                    }
-
-                    Button(action: { showingComments = true }) {
-                        Label("Comments (\(todo.comments?.count ?? 0))",
-                              systemImage: "bubble.left.and.bubble.right")
-                    }
-
-                    Button("Save Changes", action: saveChanges)
-                        .disabled(isSaving)
-                }
-            }
-            .navigationTitle("Task Details")
-            .onAppear { editingNote = todo.note ?? "" }
-            .sheet(isPresented: $showingComments) {
-                CommentsView(todo: $todo)
-            }
-            .sheet(isPresented: $showingFocus) {
-                FocusSessionView(todoId: todo.id)
             }
         }
     }
+
+    private var linksSection: some View {
+        Group {
+            // FIX: Updated to use TaskLink to avoid conflict with SwiftUI.Link
+            if let links = todo.links, !links.isEmpty {
+                Section {
+                    ForEach(links) { taskLink in
+                        if let url = URL(string: taskLink.url) {
+                            Link(taskLink.title ?? taskLink.url, destination: url)
+                        }
+                    }
+                } header: {
+                    Text("Links")
+                }
+            }
+        }
+    }
+
+    private var detailsSection: some View {
+        Section {
+            if let energyLevel = todo.energyLevel {
+                LabeledContent("Energy", value: energyLevel.capitalized)
+            }
+            if let effortMinutes = todo.effortMinutes {
+                LabeledContent("Effort", value: "\(effortMinutes) min")
+            }
+            if let location = todo.location {
+                LabeledContent("Location", value: location)
+            }
+        } header: {
+            Text("Details")
+        }
+    }
+
+    private var actionsSection: some View {
+        Section {
+            Button(action: { showingFocus = true }) {
+                Label("Start Focus Session", systemImage: "timer")
+            }
+
+            Button(action: { showingComments = true }) {
+                Label("Comments (\(todo.comments?.count ?? 0))",
+                      systemImage: "bubble.left.and.bubble.right")
+            }
+
+            Button(action: saveChanges) {
+                Text("Save Changes")
+            }
+            .disabled(isSaving)
+        } header: {
+            Text("Actions")
+        }
+    }
+
+    // MARK: - Bindings
+
+    private var statusBinding: Binding<String> {
+        Binding<String>(
+            get: { todo.status ?? "todo" },
+            set: { val in updateField("status", value: val) }
+        )
+    }
+
+    private var priorityBinding: Binding<Int> {
+        Binding<Int>(
+            get: { todo.priority ?? 2 },
+            set: { val in updateField("priority", value: val) }
+        )
+    }
+
+    // MARK: - Logic
 
     func updateField(_ field: String, value: Any) {
         Task {
             do {
                 try await TodoService.shared.updateTodo(id: todo.id, updates: [field: value])
-
-                if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
-                    DispatchQueue.main.async { todo = updated }
+                await MainActor.run {
+                    if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
+                        todo = updated
+                    }
                 }
             } catch {
                 print("Update error:", error)
@@ -120,18 +177,24 @@ struct TodoDetailView: View {
 
     func saveChanges() {
         Task {
-            isSaving = true
+            await MainActor.run { isSaving = true }
             do {
                 try await TodoService.shared.updateTodo(id: todo.id, updates: ["note": editingNote])
+                await MainActor.run {
+                    if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
+                        todo = updated
+                    }
+                    isSaving = false
+                }
             } catch {
                 print("Save error:", error)
+                await MainActor.run { isSaving = false }
             }
-            isSaving = false
         }
     }
 }
 
-// COMMENTS VIEW ---------------------------------------------------------
+// MARK: - Subviews
 
 struct CommentsView: View {
     @Binding var todo: Todo
@@ -186,9 +249,11 @@ struct CommentsView: View {
                                     todoId: todo.id,
                                     text: newComment
                                 )
-                                newComment = ""
-                                if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
-                                    DispatchQueue.main.async { todo = updated }
+                                await MainActor.run {
+                                    newComment = ""
+                                    if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
+                                        todo = updated
+                                    }
                                 }
                             } catch {
                                 print("Comment error:", error)
@@ -216,9 +281,10 @@ struct CommentsView: View {
                     commentId: commentId,
                     type: type
                 )
-
-                if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
-                    DispatchQueue.main.async { todo = updated }
+                await MainActor.run {
+                    if let updated = TodoService.shared.todos.first(where: { $0.id == todo.id }) {
+                        todo = updated
+                    }
                 }
             } catch {
                 print("Reaction error:", error)
@@ -236,8 +302,6 @@ struct CommentsView: View {
         }
     }
 }
-
-// FOCUS SESSION VIEW -----------------------------------------------------
 
 struct FocusSessionView: View {
     let todoId: String
@@ -261,8 +325,10 @@ struct FocusSessionView: View {
                         Task {
                             do {
                                 try await focusService.startFocus(todoId: todoId, duration: duration)
-                                timeRemaining = duration * 60
-                                startTimer()
+                                await MainActor.run {
+                                    timeRemaining = duration * 60
+                                    startTimer()
+                                }
                             } catch {
                                 print("Focus error:", error)
                             }
@@ -278,8 +344,10 @@ struct FocusSessionView: View {
                                 if let sessionId = focusService.currentSession?.id {
                                     try? await focusService.completeFocus(sessionId: sessionId)
                                 }
-                                timer?.invalidate()
-                                dismiss()
+                                await MainActor.run {
+                                    timer?.invalidate()
+                                    dismiss()
+                                }
                             }
                         }
                         .buttonStyle(.borderedProminent)
@@ -290,8 +358,10 @@ struct FocusSessionView: View {
                                 if let sessionId = focusService.currentSession?.id {
                                     try? await focusService.cancelFocus(sessionId: sessionId)
                                 }
-                                timer?.invalidate()
-                                dismiss()
+                                await MainActor.run {
+                                    timer?.invalidate()
+                                    dismiss()
+                                }
                             }
                         }
                         .buttonStyle(.bordered)

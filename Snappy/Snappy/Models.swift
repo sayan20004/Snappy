@@ -21,7 +21,8 @@ struct SubStep: Codable, Identifiable {
     var completed: Bool
 }
 
-struct Link: Codable, Identifiable {
+// FIX: Renamed from Link to TaskLink to avoid conflict with SwiftUI.Link
+struct TaskLink: Codable, Identifiable {
     var id: String
     var url: String
     var title: String?
@@ -55,7 +56,7 @@ struct Todo: Codable, Identifiable {
     
     // Advanced fields
     var subSteps: [SubStep]?
-    var links: [Link]?
+    var links: [TaskLink]? // FIX: Updated type
     var voiceNote: String?
     var energyLevel: String? // low, medium, high
     var effortMinutes: Int?

@@ -50,6 +50,7 @@ struct ActivityTimelineView: View {
         case "delete_todo": return "trash.circle.fill"
         case "create_list": return "folder.fill.badge.plus"
         case "invite_collaborator": return "person.badge.plus"
+        case "complete_todo": return "checkmark.circle.fill" // FIX: Added missing case
         default: return "circle.fill"
         }
     }
@@ -60,6 +61,7 @@ struct ActivityTimelineView: View {
         case "update_todo": return .blue
         case "delete_todo": return .red
         case "invite_collaborator": return .purple
+        case "complete_todo": return .green // FIX: Added missing case
         default: return .gray
         }
     }
@@ -78,6 +80,8 @@ struct ActivityTimelineView: View {
             return "\(actor) created list: \(activity.payload?["name"] ?? "Untitled")"
         case "invite_collaborator":
             return "\(actor) invited \(activity.payload?["email"] ?? "someone") to collaborate"
+        case "complete_todo": // FIX: Added missing case
+            return "\(actor) completed task: \(activity.payload?["title"] ?? "Untitled")"
         default:
             return "\(actor) performed \(activity.action)"
         }

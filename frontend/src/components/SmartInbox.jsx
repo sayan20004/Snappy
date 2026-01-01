@@ -122,18 +122,52 @@ export default function SmartInbox() {
           const Icon = config.icon;
           const isConnected = source === 'email' || source === 'whatsapp' || source === 'screenshot';
           
+          const colorClasses = {
+            blue: {
+              bg: 'bg-blue-50',
+              border: 'border-blue-200',
+              icon: 'bg-blue-100 text-blue-600'
+            },
+            green: {
+              bg: 'bg-green-50',
+              border: 'border-green-200',
+              icon: 'bg-green-100 text-green-600'
+            },
+            purple: {
+              bg: 'bg-purple-50',
+              border: 'border-purple-200',
+              icon: 'bg-purple-100 text-purple-600'
+            },
+            red: {
+              bg: 'bg-red-50',
+              border: 'border-red-200',
+              icon: 'bg-red-100 text-red-600'
+            },
+            yellow: {
+              bg: 'bg-yellow-50',
+              border: 'border-yellow-200',
+              icon: 'bg-yellow-100 text-yellow-600'
+            }
+          };
+          
+          const colors = colorClasses[config.color];
+          
           return (
             <div
               key={source}
-              className={`card p-4 text-center border-2 ${
-                isConnected ? `border-${config.color}-200 bg-${config.color}-50` : 'border-gray-200 opacity-60'
+              className={`card p-4 text-center border-2 transition-all ${
+                isConnected 
+                  ? `${colors.border} ${colors.bg} hover:shadow-md` 
+                  : 'border-gray-200 bg-gray-50 opacity-60'
               }`}
             >
-              <div className={`w-12 h-12 rounded-full bg-${config.color}-100 flex items-center justify-center mx-auto mb-2`}>
-                <Icon className={`text-${config.color}-600`} size={20} />
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                isConnected ? colors.icon : 'bg-gray-200 text-gray-400'
+              }`}>
+                <Icon size={20} />
               </div>
               <div className="text-xs font-medium text-gray-900">{config.label}</div>
-              <div className={`text-xs mt-1 ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
+              <div className={`text-xs mt-1 font-medium ${isConnected ? 'text-green-600' : 'text-gray-400'}`}>
                 {isConnected ? '✓ Connected' : 'Not connected'}
               </div>
             </div>

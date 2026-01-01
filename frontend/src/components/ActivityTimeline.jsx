@@ -201,9 +201,21 @@ export default function ActivityTimeline({ todos }) {
             </h3>
             
             {dailyStats.activityLog.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                <FiActivity size={48} className="mx-auto mb-3 opacity-50" />
-                <p>No activity recorded for this day</p>
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary-100 to-blue-100 rounded-full flex items-center justify-center">
+                  <FiActivity size={40} className="text-primary-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No activity yet today</h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  Start creating and completing tasks to see your productivity patterns
+                </p>
+                <a
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  <FiPlus size={18} />
+                  Create Your First Task
+                </a>
               </div>
             ) : (
               <div className="space-y-3">

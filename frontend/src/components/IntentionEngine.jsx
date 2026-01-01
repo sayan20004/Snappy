@@ -329,22 +329,60 @@ export default function IntentionEngine() {
 
       {/* Empty State */}
       {!dailyPlan && !isGenerating && (
-        <div className="text-center py-12 card">
-          <div className="text-6xl mb-4">🧠</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Ready to plan your day?
-          </h3>
-          <p className="text-gray-500 mb-6">
-            The Intention Engine uses AI to create an optimal daily schedule based on your tasks, energy levels, and priorities.
-          </p>
-          <button
-            onClick={generatePlan}
-            className="btn btn-primary inline-flex items-center gap-2"
-          >
-            <FiZap />
-            Generate My Daily Plan
-          </button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl"
+        >
+          {/* Background decoration */}
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+          
+          <div className="relative text-center py-16 px-8">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center transform rotate-3 shadow-xl">
+              <span className="text-5xl">🧠</span>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">
+              Ready to plan your day?
+            </h3>
+            <p className="text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+              The Intention Engine uses AI to create an optimal daily schedule based on your tasks, energy levels, and priorities.
+            </p>
+            <button
+              onClick={generatePlan}
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary-500 to-purple-600 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <FiZap size={20} />
+              Generate My Daily Plan
+            </button>
+            
+            {/* Features */}
+            <div className="grid grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-white/10 rounded-lg flex items-center justify-center">
+                  <FiZap className="text-yellow-400" size={24} />
+                </div>
+                <h4 className="text-white font-medium mb-1">Smart Prioritization</h4>
+                <p className="text-gray-400 text-sm">AI ranks tasks by urgency and importance</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-white/10 rounded-lg flex items-center justify-center">
+                  <FiSun className="text-orange-400" size={24} />
+                </div>
+                <h4 className="text-white font-medium mb-1">Energy Matching</h4>
+                <p className="text-gray-400 text-sm">Tasks aligned with your peak hours</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-white/10 rounded-lg flex items-center justify-center">
+                  <FiTrendingUp className="text-green-400" size={24} />
+                </div>
+                <h4 className="text-white font-medium mb-1">Productivity Boost</h4>
+                <p className="text-gray-400 text-sm">Optimized schedule for maximum output</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       )}
     </div>
   );

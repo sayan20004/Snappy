@@ -160,14 +160,14 @@ export default function TaskTemplates() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Task Templates</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Task Templates</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Quick-start tasks with pre-defined checklists and settings
         </p>
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {builtInTemplates.map((template, idx) => (
           <motion.button
             key={template.id}
@@ -175,24 +175,32 @@ export default function TaskTemplates() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
             onClick={() => setSelectedTemplate(template)}
-            className="card p-6 hover:shadow-md transition-all text-left group"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all text-left group"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="text-3xl">{template.name.split(' ')[0]}</div>
               <FiCopy className="text-gray-400 group-hover:text-primary-600 transition-colors" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
               {template.name.split(' ').slice(1).join(' ')}
             </h3>
-            <p className="text-sm text-gray-500 mb-3">{template.description}</p>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span>{template.template.subSteps.length} steps</span>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{template.description}</p>
+            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-primary-500 rounded-full"></span>
+                {template.template.subSteps.length} steps
+              </span>
               <span>•</span>
-              <span>{template.template.effortMinutes}min</span>
+              <span className="flex items-center gap-1">
+                <FiClock className="w-3 h-3" />
+                {template.template.effortMinutes}min
+              </span>
               {template.template.tags && (
                 <>
                   <span>•</span>
-                  <span>{template.template.tags[0]}</span>
+                  <span className="px-2 py-0.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-full text-xs font-medium">
+                    {template.template.tags[0]}
+                  </span>
                 </>
               )}
             </div>

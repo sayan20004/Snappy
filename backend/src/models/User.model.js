@@ -56,7 +56,9 @@ UserSchema.pre('save', async function(next) {
   }
   
   try {
-    const salt = await bcrypt.genSalt(10);
+    // Use stronger bcrypt rounds for production
+    const saltRounds = process.env.NODE_ENV === 'production' ? 12 : 10;
+    const salt = await bcrypt.genSalt(saltRounds);
     this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
     next();
   } catch (error) {

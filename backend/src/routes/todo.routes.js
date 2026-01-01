@@ -15,8 +15,13 @@ import {
 } from '../controllers/comment.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
+import { apiRateLimiter, sanitizeInput } from '../middleware/security.middleware.js';
 
 const router = express.Router();
+
+// Apply rate limiting and sanitization
+router.use(apiRateLimiter);
+router.use(sanitizeInput);
 
 // All routes require authentication
 router.use(authenticate);

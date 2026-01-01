@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import secureStorage from '../utils/secureStorage.js';
 
 export const useAuthStore = create(
   persist(
@@ -14,13 +15,13 @@ export const useAuthStore = create(
       },
 
       setAuth: (user, token) => {
-        localStorage.setItem('token', token);
+        secureStorage.setToken(token);
         set({ user, token, isAuthenticated: true });
         // Socket will be initialized when needed
       },
 
       logout: () => {
-        localStorage.removeItem('token');
+        secureStorage.removeToken();
         set({ user: null, token: null, isAuthenticated: false });
         // Socket disconnection handled by app cleanup
       },

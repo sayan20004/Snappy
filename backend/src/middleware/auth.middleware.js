@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js';
+import { securityLogger } from './security.middleware.js';
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -7,7 +8,11 @@ export const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+      securityLogger('AUTH_NO_TOKEN', { ip: req.ip, path: req.path });
+      return res.status(401).json({ 
+        success: false,
+        error: { message: 'No token provided', code: 'NO_TOKEN' }
+      });
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -19,22 +24,39 @@ export const authenticate = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select('-passwordHash');
     
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      securityLogger('AUTH_USER_NOT_FOUND', { userId: decoded.userId, ip: req.ip });
+      return res.status(401).json({ 
+        success: false,
+        error: { message: 'User not found', code: 'USER_NOT_FOUND' }
+      });
     }
 
     // Attach user to request
     req.user = user;
     req.userId = user._id;
+    req.token = token;
     
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
+      securityLogger('AUTH_INVALID_TOKEN', { error: error.message, ip: req.ip });
+      return res.status(401).json({ 
+        success: false,
+        error: { message: 'Invalid token', code: 'INVALID_TOKEN' }
+      });
     }
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      securityLogger('AUTH_TOKEN_EXPIRED', { ip: req.ip });
+      return res.status(401).json({ 
+        success: false,
+        error: { message: 'Token expired', code: 'TOKEN_EXPIRED' }
+      });
     }
-    return res.status(500).json({ error: 'Authentication failed' });
+    securityLogger('AUTH_ERROR', { error: error.message, ip: req.ip });
+    return res.status(500).json({ 
+      success: false,
+      error: { message: 'Authentication failed', code: 'AUTH_FAILED' }
+    });
   }
 };
 

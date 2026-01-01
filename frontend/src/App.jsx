@@ -1,18 +1,30 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
+import { lazyLoadRoute } from './utils/codeSplitting.jsx';
+
+// Eager load authentication pages for immediate access
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import FocusMode from './pages/FocusMode';
-import TimelinePage from './pages/TimelinePage';
-import InboxPage from './pages/InboxPage';
-import PlannerPage from './pages/PlannerPage';
-import TemplatesPage from './pages/TemplatesPage';
-import ProfilePage from './pages/ProfilePage';
 import LandingPage from './pages/LandingPage';
-import CommandPalette from './components/CommandPalette';
-import MobileBottomNav from './components/MobileBottomNav';
+
+// Lazy load dashboard and feature pages with code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const FocusMode = lazy(() => import('./pages/FocusMode'));
+const TimelinePage = lazy(() => import('./pages/TimelinePage'));
+const InboxPage = lazy(() => import('./pages/InboxPage'));
+const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
+const MobileBottomNav = lazy(() => import('./components/MobileBottomNav'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -32,8 +44,12 @@ function App() {
 
   return (
     <>
-      {isAuthenticated && <CommandPalette />}
-      {isAuthenticated && <MobileBottomNav />}
+      {isAuthenticated && (
+        <Suspense fallback={null}>
+          <CommandPalette />
+          <MobileBottomNav />
+        </Suspense>
+      )}
       <Routes>
       
       <Route 
@@ -50,31 +66,87 @@ function App() {
       />
       <Route
         path="/dashboard"
-        element={isAuthenticated ? <Dashboard /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Dashboard />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/focus"
-        element={isAuthenticated ? <FocusMode /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <FocusMode />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/timeline"
-        element={isAuthenticated ? <TimelinePage /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <TimelinePage />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/inbox"
-        element={isAuthenticated ? <InboxPage /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <InboxPage />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/planner"
-        element={isAuthenticated ? <PlannerPage /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <PlannerPage />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/templates"
-        element={isAuthenticated ? <TemplatesPage /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <TemplatesPage />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route
         path="/profile"
-        element={isAuthenticated ? <ProfilePage /> : <Navigate to="/" replace />}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <ProfilePage />
+            </Suspense>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

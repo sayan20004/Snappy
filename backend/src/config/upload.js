@@ -41,9 +41,9 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
+// File filter with security checks
 const fileFilter = (req, file, cb) => {
-  // Allowed file types
+  // Allowed file types with strict validation
   const allowedTypes = {
     voice: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mp4'],
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
@@ -53,11 +53,34 @@ const fileFilter = (req, file, cb) => {
 
   const allAllowed = [...allowedTypes.voice, ...allowedTypes.image, ...allowedTypes.file];
   
-  // Allow any image for now
-  if (file.mimetype.startsWith('image/') || allAllowed.includes(file.mimetype)) {
-    cb(null, true);
+  // Strict MIME type validation
+  if (allAllowed.includes(file.mimetype)) {
+    // Additional security: Check file extension matches MIME type
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mimeToExt = {
+      'audio/mpeg': ['.mp3', '.mpeg'],
+      'audio/wav': ['.wav'],
+      'audio/ogg': ['.ogg'],
+      'audio/webm': ['.webm'],
+      'audio/mp4': ['.mp4', '.m4a'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/webp': ['.webp'],
+      'application/pdf': ['.pdf'],
+      'text/plain': ['.txt']
+    };
+    
+    const validExts = mimeToExt[file.mimetype] || [];
+    if (validExts.length === 0 || validExts.includes(ext)) {
+      // Sanitize filename to prevent path traversal
+      file.originalname = path.basename(file.originalname);
+      cb(null, true);
+    } else {
+      cb(new Error('File extension does not match MIME type'), false);
+    }
   } else {
-    cb(new Error('Invalid file type. Only audio, image, and document files are allowed.'), false);
+    cb(new Error('Invalid file type. Only audio, image, PDF and text files are allowed.'), false);
   }
 };
 

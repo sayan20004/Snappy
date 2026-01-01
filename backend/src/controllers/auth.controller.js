@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { 
+  trackLoginAttempts, 
+  resetLoginAttempts,
+  securityLogger 
+} from '../middleware/security.middleware.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -61,6 +66,8 @@ export const login = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+passwordHash');
     
     if (!user) {
+      trackLoginAttempts(email);
+      securityLogger('LOGIN_FAILED', { email, reason: 'User not found', ip: req.ip });
       throw new AppError('Invalid email or password', 401);
     }
 
@@ -68,8 +75,14 @@ export const login = async (req, res, next) => {
     const isPasswordValid = await user.comparePassword(password);
     
     if (!isPasswordValid) {
+      trackLoginAttempts(email);
+      securityLogger('LOGIN_FAILED', { email, reason: 'Invalid password', ip: req.ip });
       throw new AppError('Invalid email or password', 401);
     }
+
+    // Reset login attempts on successful login
+    resetLoginAttempts(email);
+    securityLogger('LOGIN_SUCCESS', { userId: user._id, email, ip: req.ip });
 
     // Generate token
     const token = generateToken(user._id);

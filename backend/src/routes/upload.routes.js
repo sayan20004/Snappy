@@ -13,8 +13,12 @@ import {
   uploadMultiple
 } from '../config/upload.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { uploadRateLimiter, validateFileUpload } from '../middleware/security.middleware.js';
 
 const router = express.Router();
+
+// Apply upload rate limiting
+router.use(uploadRateLimiter);
 
 // All routes require authentication
 router.use(authenticate);

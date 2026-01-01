@@ -2,8 +2,6 @@ import axios from 'axios';
 import secureStorage from '../utils/secureStorage.js';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-console.log('🔧 API_URL:', API_URL);
-console.log('🔧 VITE_API_URL env:', import.meta.env.VITE_API_URL);
 
 // CSRF Token Management
 let csrfToken = null;

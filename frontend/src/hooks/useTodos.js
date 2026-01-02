@@ -15,13 +15,9 @@ export const useCreateTodo = () => {
   return useMutation({
     mutationFn: todosAPI.createTodo,
     onMutate: async (newTodo) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['todos'] });
-
-      // Snapshot previous value
       const previousTodos = queryClient.getQueryData(['todos']);
 
-      // Optimistically update
       queryClient.setQueryData(['todos'], (old) => ({
         ...old,
         todos: [
@@ -38,7 +34,6 @@ export const useCreateTodo = () => {
       return { previousTodos };
     },
     onError: (err, newTodo, context) => {
-      // Rollback on error
       queryClient.setQueryData(['todos'], context.previousTodos);
       toast.error('Failed to create todo');
     },
@@ -51,19 +46,60 @@ export const useCreateTodo = () => {
   });
 };
 
+// TASK C: Optimistic UI for toggleTodo
+export const useToggleTodo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }) => todosAPI.updateTodo(id, { status }),
+    onMutate: async ({ id, status }) => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
+
+      // Snapshot previous value
+      const previousTodos = queryClient.getQueryData(['todos']);
+
+      // Optimistically update to the new value (instant UI update)
+      queryClient.setQueryData(['todos'], (old) => {
+        if (!old?.todos) return old;
+        return {
+          ...old,
+          todos: old.todos.map((todo) =>
+            todo._id === id
+              ? { ...todo, status, completedAt: status === 'done' ? new Date().toISOString() : null }
+              : todo
+          ),
+        };
+      });
+
+      // Return context with snapshot for rollback
+      return { previousTodos };
+    },
+    onError: (err, { id }, context) => {
+      // Rollback to previous state on error
+      if (context?.previousTodos) {
+        queryClient.setQueryData(['todos'], context.previousTodos);
+      }
+      toast.error('Failed to toggle todo');
+    },
+    onSettled: () => {
+      // Refetch to ensure server state is correct
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+};
+
 export const useUpdateTodo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }) => todosAPI.updateTodo(id, data),
     onSuccess: (response) => {
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       queryClient.invalidateQueries({ queryKey: ['lists'] });
     },
     onError: (err) => {
       toast.error(err?.response?.data?.error || 'Failed to update todo');
-      // Refetch to ensure correct state
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });

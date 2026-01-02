@@ -43,25 +43,7 @@ export const getTodos = async (req, res, next) => {
 // @access  Private
 export const createTodo = async (req, res, next) => {
   try {
-    const { 
-      title, 
-      note, 
-      listId, 
-      tags, 
-      priority, 
-      dueAt,
-      // New advanced fields
-      subSteps,
-      links,
-      voiceNote,
-      energyLevel,
-      effortMinutes,
-      location,
-      mood,
-      bestTimeToComplete,
-      assignedTo,
-      source
-    } = req.body;
+    const { title, note, listId, tags, priority, dueAt, subSteps, links, voiceNote, energyLevel, effortMinutes, location, mood, bestTimeToComplete, assignedTo, source } = req.body;
 
     // Verify list ownership if listId provided
     if (listId) {
@@ -71,6 +53,7 @@ export const createTodo = async (req, res, next) => {
       }
     }
 
+    // Direct Mongoose create - no BaseService
     const todo = await Todo.create({
       title,
       note: note || '',
@@ -79,7 +62,6 @@ export const createTodo = async (req, res, next) => {
       tags: tags || [],
       priority: priority ?? 2,
       dueAt: dueAt || null,
-      // Advanced fields
       subSteps: subSteps || [],
       links: links || [],
       voiceNote,
@@ -103,9 +85,7 @@ export const createTodo = async (req, res, next) => {
 
     // Emit socket event
     const io = req.app.get('io');
-    if (listId) {
-      io.to(`list:${listId}`).emit('todo:created', todo);
-    }
+    if (listId) io.to(`list:${listId}`).emit('todo:created', todo);
     io.to(`user:${req.userId}`).emit('todo:created', todo);
 
     res.status(201).json({ todo });
@@ -122,55 +102,30 @@ export const updateTodo = async (req, res, next) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Find todo
+    // Direct Mongoose findById - no BaseService
     const todo = await Todo.findById(id);
     
     if (!todo) {
       throw new AppError('Todo not found', 404);
     }
 
-    // Check if user has permission to edit
+    // Check permissions
     const isOwner = todo.owner.toString() === req.userId.toString();
     let hasListAccess = false;
     
     if (todo.listId && !isOwner) {
       const list = await List.findById(todo.listId);
-      if (list) {
-        hasListAccess = list.canEdit(req.userId);
-      }
+      if (list) hasListAccess = list.canEdit(req.userId);
     }
     
-    // Allow update if owner OR has list access OR if listId is null (inbox items)
     if (!isOwner && !hasListAccess && todo.listId !== null) {
       throw new AppError('Permission denied', 403);
     }
 
-    // Apply updates
-    const allowedUpdates = [
-      'title', 
-      'note', 
-      'status', 
-      'priority', 
-      'tags', 
-      'dueAt', 
-      'listId',
-      // Advanced fields
-      'subSteps',
-      'links',
-      'voiceNote',
-      'energyLevel',
-      'effortMinutes',
-      'location',
-      'mood',
-      'bestTimeToComplete',
-      'assignedTo',
-      'comments',
-      'reactions'
-    ];
+    // Apply allowed updates directly
+    const allowedUpdates = ['title', 'note', 'status', 'priority', 'tags', 'dueAt', 'listId', 'subSteps', 'links', 'voiceNote', 'energyLevel', 'effortMinutes', 'location', 'mood', 'bestTimeToComplete', 'assignedTo', 'comments', 'reactions'];
     allowedUpdates.forEach(field => {
-      if (updates[field] !== undefined) {
-        todo[field] = updates[field];
-      }
+      if (updates[field] !== undefined) todo[field] = updates[field];
     });
 
     await todo.save();
@@ -186,9 +141,7 @@ export const updateTodo = async (req, res, next) => {
 
     // Emit socket event
     const io = req.app.get('io');
-    if (todo.listId) {
-      io.to(`list:${todo.listId}`).emit('todo:updated', todo);
-    }
+    if (todo.listId) io.to(`list:${todo.listId}`).emit('todo:updated', todo);
     io.to(`user:${req.userId}`).emit('todo:updated', todo);
 
     res.json({ todo });

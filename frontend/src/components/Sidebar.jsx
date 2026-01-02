@@ -224,20 +224,6 @@ export default function Sidebar() {
                   const canEdit = canEditList(list);
                   const showActions = hoveredList === list._id && canEdit;
                   
-                  // Debug logging
-                  if (hoveredList === list._id) {
-                    console.log('Hovered list:', list.name, {
-                      listId: list._id,
-                      hoveredList,
-                      isOwner,
-                      canEdit,
-                      showActions,
-                      owner: list.owner,
-                      userId: user?.id || user?._id,
-                      user: user
-                    });
-                  }
-                  
                   return (
                     <div
                       key={list._id}

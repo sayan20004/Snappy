@@ -3,7 +3,60 @@ import { getGeminiModel as getModel, getGeminiVisionModel, generateContent, gene
 // Re-export for use in controllers
 export { getGeminiModel } from '../config/gemini.js';
 
-// Extract tasks from natural language
+// TASK B: Agentic AI - JSON-only mode for single task parsing
+export const extractTasksFromTextJSON = async (text) => {
+  const model = getModel();
+  
+  // Strict system prompt for JSON-only output
+  const prompt = `You are a strict JSON API. Parse the user input and return ONLY valid JSON. No explanations, no markdown, no code blocks.
+
+OUTPUT SCHEMA:
+{
+  "title": "string",
+  "priority": "high" | "medium" | "low",
+  "dueDate": "ISO 8601 string or null",
+  "tags": ["string"],
+  "suggestedSubtasks": ["string"]
+}
+
+RULES:
+- Extract priority from keywords like "urgent", "asap", "important" → "high"; "someday", "maybe" → "low"; else "medium"
+- Extract dates from phrases like "next Friday", "tomorrow", "Jan 5" and convert to ISO format
+- Extract tags from # symbols (e.g., "#work" → "work")
+- Suggest 2-4 logical subtasks if the task is complex
+- Return null for dueDate if no date mentioned
+
+USER INPUT:
+"${text}"
+
+OUTPUT (JSON only):`;
+
+  try {
+    const response = await generateContent(model, prompt);
+    // Strip any markdown code blocks
+    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    
+    // Validate schema
+    if (!parsed.title || !parsed.priority || !Array.isArray(parsed.tags) || !Array.isArray(parsed.suggestedSubtasks)) {
+      throw new Error('Invalid AI response schema');
+    }
+    
+    return parsed;
+  } catch (error) {
+    console.error('AI JSON extraction error:', error);
+    // Fallback: basic parsing
+    return {
+      title: text.substring(0, 100),
+      priority: 'medium',
+      dueDate: null,
+      tags: [],
+      suggestedSubtasks: []
+    };
+  }
+};
+
+// Extract tasks from natural language (legacy multi-task array)
 export const extractTasksFromText = async (text) => {
   const model = getModel();
   const prompt = `Extract all tasks, dates, priorities, and subtasks from the following text. 

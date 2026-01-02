@@ -20,7 +20,7 @@ export const upload = multer({
   }
 });
 
-// Extract tasks from text input
+// Extract tasks from text input (JSON-only mode)
 export const analyzeText = async (req, res, next) => {
   try {
     const { text } = req.body;
@@ -29,12 +29,12 @@ export const analyzeText = async (req, res, next) => {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    const tasks = await aiService.extractTasksFromText(text);
+    // Force JSON response from AI
+    const result = await aiService.extractTasksFromTextJSON(text);
     
     res.json({
       success: true,
-      tasks,
-      count: tasks.length
+      ...result // { title, priority, dueDate, tags, suggestedSubtasks }
     });
   } catch (error) {
     next(error);

@@ -53,3 +53,48 @@ export const useDeleteList = () => {
     },
   });
 };
+
+export const useInviteCollaborator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ listId, data }) => listsAPI.inviteCollaborator(listId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Collaborator invited!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to invite collaborator');
+    },
+  });
+};
+
+export const useRemoveCollaborator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ listId, userId }) => listsAPI.removeCollaborator(listId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Collaborator removed');
+    },
+    onError: () => {
+      toast.error('Failed to remove collaborator');
+    },
+  });
+};
+
+export const useUpdateCollaboratorRole = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ listId, userId, role }) => listsAPI.updateCollaboratorRole(listId, userId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Role updated');
+    },
+    onError: () => {
+      toast.error('Failed to update role');
+    },
+  });
+};

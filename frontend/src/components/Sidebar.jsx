@@ -3,10 +3,11 @@ import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useThemeStore } from '../store/themeStore';
 import { useLists, useCreateList, useUpdateList, useDeleteList } from '../hooks/useLists';
-import { FiMenu, FiPlus, FiLogOut, FiHome, FiStar, FiCalendar, FiActivity, FiInbox, FiZap, FiMoon, FiSun, FiCopy, FiX, FiEdit2, FiTrash2, FiUser } from 'react-icons/fi';
+import { FiMenu, FiPlus, FiLogOut, FiHome, FiStar, FiCalendar, FiActivity, FiInbox, FiZap, FiMoon, FiSun, FiCopy, FiX, FiEdit2, FiTrash2, FiUser, FiUsers } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getFullAvatarUrl } from '../utils/avatarUrl';
+import ListCollaborators from './ListCollaborators';
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
@@ -19,12 +20,43 @@ export default function Sidebar() {
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false);
   const [editingList, setEditingList] = useState(null);
+  const [collaboratorsList, setCollaboratorsList] = useState(null);
   const [newListName, setNewListName] = useState('');
   const [newListIcon, setNewListIcon] = useState('📝');
   const [hoveredList, setHoveredList] = useState(null);
 
   const commonEmojis = ['📝', '💼', '🏠', '🎯', '📚', '🛒', '💪', '✈️', '🎨', '💡', '🎵', '🏃'];
+
+  // Check if user can edit the list
+  const canEditList = (list) => {
+    if (!user || !list) return false;
+    
+    // Owner can always edit
+    const isOwner = list.owner && (String(list.owner._id || list.owner) === String(user._id));
+    if (isOwner) return true;
+    
+    // Check if user is an editor collaborator
+    if (list.collaborators) {
+      const collaborator = list.collaborators.find(
+        c => String(c.userId._id || c.userId) === String(user._id)
+      );
+      return collaborator && collaborator.role === 'editor';
+    }
+    
+    return false;
+  };
+
+  // Check if user is owner
+  const isListOwner = (list) => {
+    return list.owner && (String(list.owner._id || list.owner) === String(user._id));
+  };
+
+  const handleManageCollaborators = (list) => {
+    setCollaboratorsList(list);
+    setShowCollaboratorsModal(true);
+  };
 
   const handleCreateList = () => {
     if (!newListName.trim()) return;
@@ -71,14 +103,20 @@ export default function Sidebar() {
     });
   };
 
-  const handleDeleteList = (listId) => {
+  const handleDeleteList = (list) => {
+    // Only owner can delete
+    if (!isListOwner(list)) {
+      toast.error('Only the list owner can delete this list');
+      return;
+    }
+
     if (!confirm('Are you sure you want to delete this list? All tasks in this list will be deleted.')) {
       return;
     }
 
-    deleteListMutation.mutate(listId, {
+    deleteListMutation.mutate(list._id, {
       onSuccess: () => {
-        if (selectedList === listId) {
+        if (selectedList === list._id) {
           setSelectedList(null);
         }
         toast.success('List deleted successfully!');
@@ -190,11 +228,23 @@ export default function Sidebar() {
                       <span className="truncate flex-1">{list.name}</span>
                     </button>
                     
-                    {/* Edit/Delete buttons for list owners */}
-                    {hoveredList === list._id && list.owner && (
-                      String(list.owner._id || list.owner) === String(user?._id)
-                    ) && (
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 bg-white dark:bg-gray-800 rounded shadow-lg p-1">
+                    {/* Action buttons - show for editors and owners */}
+                    {hoveredList === list._id && canEditList(list) && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 bg-white dark:bg-gray-800 rounded shadow-lg p-1 z-10">
+                        {/* Collaborators button - only for owner */}
+                        {isListOwner(list) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleManageCollaborators(list);
+                            }}
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-purple-600 dark:text-purple-400"
+                            title="Manage collaborators"
+                          >
+                            <FiUsers size={14} />
+                          </button>
+                        )}
+                        {/* Edit button - for editors and owners */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -205,23 +255,26 @@ export default function Sidebar() {
                         >
                           <FiEdit2 size={14} />
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteList(list._id);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-red-600 dark:text-red-400"
-                          title="Delete list"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
+                        {/* Delete button - only for owner */}
+                        {isListOwner(list) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteList(list);
+                            }}
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-red-600 dark:text-red-400"
+                            title="Delete list"
+                          >
+                            <FiTrash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     )}
                     
                     {/* Collaborative indicator */}
-                    {list.collaborators && list.collaborators.length > 0 && (
+                    {list.collaborators && list.collaborators.length > 0 && hoveredList !== list._id && (
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
-                        {hoveredList !== list._id && `👥 ${list.collaborators.length}`}
+                        👥 {list.collaborators.length}
                       </div>
                     )}
                   </div>
@@ -421,6 +474,17 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* List Collaborators Modal */}
+      {showCollaboratorsModal && collaboratorsList && (
+        <ListCollaborators 
+          list={collaboratorsList} 
+          onClose={() => {
+            setShowCollaboratorsModal(false);
+            setCollaboratorsList(null);
+          }} 
+        />
       )}
     </aside>
   );

@@ -64,6 +64,16 @@ export const listsAPI = {
     const response = await api.post(`/lists/${id}/invite`, data);
     return response.data;
   },
+
+  removeCollaborator: async (listId, userId) => {
+    const response = await api.delete(`/lists/${listId}/collaborators/${userId}`);
+    return response.data;
+  },
+
+  updateCollaboratorRole: async (listId, userId, role) => {
+    const response = await api.patch(`/lists/${listId}/collaborators/${userId}`, { role });
+    return response.data;
+  },
 };
 
 export const usersAPI = {

@@ -20,7 +20,6 @@ import focusRoutes from './routes/focus.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { setupSocketHandlers } from './socket/handlers.js';
-import { Logger } from './patterns/index.js';
 import { 
   securityHeaders, 
   preventNoSQLInjection,
@@ -117,10 +116,7 @@ app.use(sanitizeInput);
 // Request Logging Middleware (development)
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
-    Logger.info(`${req.method} ${req.path}`, {
-      ip: req.ip,
-      userAgent: req.get('user-agent')
-    });
+    console.log(`${req.method} ${req.path}`, req.ip);
     next();
   });
 }
@@ -170,7 +166,7 @@ app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
-  Logger.warn('Route not found', { path: req.path, method: req.method });
+  console.warn('Route not found:', req.method, req.path);
   res.status(404).json({
     success: false,
     error: {
@@ -185,21 +181,21 @@ const PORT = process.env.PORT || 5000;
 
 // Graceful shutdown
 const gracefulShutdown = (signal) => {
-  Logger.info(`${signal} received, starting graceful shutdown`);
+  console.log(`${signal} received, starting graceful shutdown`);
   
   httpServer.close(() => {
-    Logger.info('HTTP server closed');
+    console.log('HTTP server closed');
     
     // Close socket.io connections
     io.close(() => {
-      Logger.info('Socket.io closed');
+      console.log('Socket.io closed');
       process.exit(0);
     });
   });
 
   // Force shutdown after 30 seconds
   setTimeout(() => {
-    Logger.error('Forced shutdown after timeout');
+    console.error('Forced shutdown after timeout');
     process.exit(1);
   }, 30000);
 };
@@ -209,24 +205,24 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Uncaught exception handler
 process.on('uncaughtException', (error) => {
-  Logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
+  console.error('Uncaught Exception:', error.message, error.stack);
   gracefulShutdown('uncaughtException');
 });
 
 // Unhandled rejection handler
 process.on('unhandledRejection', (reason, promise) => {
-  Logger.error('Unhandled Rejection', { reason, promise });
+  console.error('Unhandled Rejection:', reason);
 });
 
 httpServer.listen(PORT, () => {
-  Logger.info(`🚀 Server running on port ${PORT}`);
-  Logger.info(`📡 Socket.io ready for connections`);
-  Logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 Socket.io ready for connections`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   
   if (process.env.NODE_ENV === 'production') {
-    Logger.info('🔒 Running in PRODUCTION mode');
+    console.log('🔒 Running in PRODUCTION mode');
   } else {
-    Logger.info('🔧 Running in DEVELOPMENT mode');
+    console.log('🔧 Running in DEVELOPMENT mode');
   }
 });
 

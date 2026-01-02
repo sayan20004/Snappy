@@ -218,7 +218,7 @@ export default function Sidebar() {
                   >
                     <button
                       onClick={() => setSelectedList(list._id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left relative ${
                         selectedList === list._id
                           ? 'bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -226,54 +226,54 @@ export default function Sidebar() {
                     >
                       <span>{list.icon}</span>
                       <span className="truncate flex-1">{list.name}</span>
+                      
+                      {/* Action buttons - show for editors and owners */}
+                      {hoveredList === list._id && canEditList(list) && (
+                        <span className="flex gap-1 ml-auto" onClick={(e) => e.stopPropagation()}>
+                          {/* Collaborators button - only for owner */}
+                          {isListOwner(list) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleManageCollaborators(list);
+                              }}
+                              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors text-purple-600 dark:text-purple-400"
+                              title="Manage collaborators"
+                            >
+                              <FiUsers size={14} />
+                            </button>
+                          )}
+                          {/* Edit button - for editors and owners */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditList(list);
+                            }}
+                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors text-blue-600 dark:text-blue-400"
+                            title="Edit list"
+                          >
+                            <FiEdit2 size={14} />
+                          </button>
+                          {/* Delete button - only for owner */}
+                          {isListOwner(list) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteList(list);
+                              }}
+                              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors text-red-600 dark:text-red-400"
+                              title="Delete list"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          )}
+                        </span>
+                      )}
                     </button>
                     
-                    {/* Action buttons - show for editors and owners */}
-                    {hoveredList === list._id && canEditList(list) && (
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 bg-white dark:bg-gray-800 rounded shadow-lg p-1 z-10">
-                        {/* Collaborators button - only for owner */}
-                        {isListOwner(list) && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleManageCollaborators(list);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-purple-600 dark:text-purple-400"
-                            title="Manage collaborators"
-                          >
-                            <FiUsers size={14} />
-                          </button>
-                        )}
-                        {/* Edit button - for editors and owners */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditList(list);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-blue-600 dark:text-blue-400"
-                          title="Edit list"
-                        >
-                          <FiEdit2 size={14} />
-                        </button>
-                        {/* Delete button - only for owner */}
-                        {isListOwner(list) && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteList(list);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-red-600 dark:text-red-400"
-                            title="Delete list"
-                          >
-                            <FiTrash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Collaborative indicator */}
+                    {/* Collaborative indicator - show when not hovering */}
                     {list.collaborators && list.collaborators.length > 0 && hoveredList !== list._id && (
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400 pointer-events-none">
                         👥 {list.collaborators.length}
                       </div>
                     )}

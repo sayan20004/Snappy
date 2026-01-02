@@ -97,6 +97,41 @@ export const getSuggestions = async (req, res, next) => {
   }
 };
 
+// INTENTION ENGINE - Generate intelligent daily schedule
+export const generateSchedule = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { workHoursStart = '09:00', workHoursEnd = '17:00', userEnergy = 'medium' } = req.body;
+    
+    // Fetch user's pending todos
+    const todos = await Todo.find({ 
+      owner: userId, 
+      status: { $in: ['todo', 'in-progress'] }
+    })
+    .sort({ priority: -1, dueAt: 1 })
+    .limit(20)
+    .lean();
+
+    const userContext = {
+      todos,
+      currentTime: new Date().toISOString(),
+      userEnergy,
+      workHoursStart,
+      workHoursEnd,
+      breaks: true
+    };
+
+    const schedule = await aiService.generateIntentionSchedule(userContext);
+    
+    res.json({
+      success: true,
+      ...schedule
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Breakdown a task into subtasks
 export const breakdownTask = async (req, res, next) => {
   try {

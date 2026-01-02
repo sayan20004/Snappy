@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useUpdateTodo, useDeleteTodo } from '../hooks/useTodos';
-import { FiTrash2, FiEdit2, FiCheck, FiMoreVertical } from 'react-icons/fi';
+import { FiTrash2, FiEdit2, FiCheck, FiMoreVertical, FiBatteryCharging, FiBattery, FiZap } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useSwipe, triggerHaptic } from '../hooks/useMobile';
 import { format } from 'date-fns';
@@ -58,42 +58,116 @@ export default function TaskCard({ todo }) {
     }
   };
 
-  const priorityColors = {
-    0: 'bg-gray-200',
-    1: 'bg-blue-200',
-    2: 'bg-yellow-200',
-    3: 'bg-red-200',
+  // Energy level visual indicators
+  const EnergyIndicator = ({ level }) => {
+    const config = {
+      low: { color: 'text-green-500 dark:text-green-400', icon: FiBattery, label: 'Low' },
+      medium: { color: 'text-yellow-500 dark:text-yellow-400', icon: FiBatteryCharging, label: 'Med' },
+      high: { color: 'text-red-500 dark:text-red-400', icon: FiZap, label: 'High' }
+    };
+    const { color, icon: Icon, label } = config[level] || config.low;
+    return (
+      <div className={`flex items-center gap-1 ${color}`} title={`${label} energy required`}>
+        <Icon size={16} />
+      </div>
+    );
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.15 }}
-      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all p-4 ${
-        todo.status === 'done' ? 'opacity-60' : ''
-      }`}
-      {...swipeHandlers}
-    >
-      <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <button
-          onClick={handleToggleComplete}
-          className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-            todo.status === 'done'
-              ? 'bg-primary-600 border-primary-600'
-              : 'border-gray-300 hover:border-primary-500'
-          }`}
-        >
-          {todo.status === 'done' && <FiCheck className="text-white" size={14} />}
-        </button>
+  // Duration visual indicator (pie chart)
+  const DurationIndicator = ({ minutes }) => {
+    if (!minutes) return null;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const displayTime = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    
+    // Progress ring based on duration (normalize to 0-100)
+    const normalizedPercent = Math.min((minutes / 120) * 100, 100);
+    const circumference = 2 * Math.PI * 10;
+    const strokeDashoffset = circumference - (normalizedPercent / 100) * circumference;
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          {isEditing ? (
-            <input
-              type="text"
+    return (
+      <div className="flex items-center gap-1.5" title={`${displayTime} estimated`}>
+        <svg width="20" height="20" className="transform -rotate-90">
+          <circle
+            cx="10"
+            cy="10"
+            r="8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-gray-200 dark:text-gray-700"
+          />
+          <circle
+            cx="10"
+            cy="10"
+            r="8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            className="text-primary-500 dark:text-primary-400"
+          />
+        </svg>
+        <span className="text-xs text-gray-600 dark:text-gray-400">{displayTime}</span>
+      </div>
+    );
+  };
+
+  const priorityColors = {
+    0: 'bg-gray-200 dark:bg-gray-700',
+    1: 'bg-blue-200 dark:bg-blue-900',
+    2: 'bg-yellow-200 dark:bg-yellow-900',
+    3: 'bg-red-200 dark:bg-red-900',
+  };dark:text-gray-400 mt-1">{todo.note}</p>
+          )}
+
+          {/* Visual Meta Info */}
+          <div className="flex items-center gap-4 mt-3">
+            {/* Energy Level (Battery Icon) */}
+            {todo.energyLevel && <EnergyIndicator level={todo.energyLevel} />}
+
+            {/* Duration (Pie Chart) */}
+            {todo.effortMinutes && <DurationIndicator minutes={todo.effortMinutes} />}
+
+            {/* AI Confidence Badge */}
+            {todo.aiClassification?.confidence > 0 && (
+              <div 
+                className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400"
+                title={`AI confidence: ${Math.round(todo.aiClassification.confidence * 100)}%`}
+              >
+                <span className="text-xs">🤖</span>
+                <span>{Math.round(todo.aiClassification.confidence * 100)}%</span>
+              </div>
+            )}
+
+            {/* Tags */}
+            {todo.tags?.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {todo.tags.slice(0, 2).map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {todo.tags.length > 2 && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">+{todo.tags.length - 2}</span>
+                )}
+              </div>
+            )}
+
+            {/* Due Date */}
+            {todo.dueAt && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                📅 {format(new Date(todo.dueAt), 'MMM d')}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Priority indicator (vertical bar)
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onBlur={handleSaveEdit}

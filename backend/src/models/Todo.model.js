@@ -14,6 +14,19 @@ const LinkPreviewSchema = new mongoose.Schema({
   favicon: { type: String }
 }, { _id: false });
 
+// Block-based content (like Notion)
+const ContentBlockSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  type: { 
+    type: String, 
+    enum: ['text', 'heading', 'bullet', 'number', 'checkbox', 'code', 'quote'], 
+    default: 'text' 
+  },
+  content: { type: String, default: '' },
+  metadata: mongoose.Schema.Types.Mixed, // For extra data (language for code blocks, etc.)
+  order: { type: Number, default: 0 }
+}, { _id: false });
+
 const TodoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -25,6 +38,11 @@ const TodoSchema = new mongoose.Schema({
     type: String,
     default: '',
     maxlength: [5000, 'Note cannot exceed 5000 characters']
+  },
+  // NEW: Block-based content for rich editing
+  blocks: {
+    type: [ContentBlockSchema],
+    default: []
   },
   
   // Context Layers
@@ -54,6 +72,15 @@ const TodoSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   }],
+  // NEW: AI Confidence for auto-classification
+  aiClassification: {
+    confidence: { type: Number, min: 0, max: 1, default: 0 }, // 0-1 confidence score
+    suggestedTags: [String],
+    suggestedEnergy: { type: String, enum: ['low', 'medium', 'high'] },
+    suggestedDuration: Number,
+    classifiedAt: Date,
+    manual: { type: Boolean, default: false } // User manually set vs AI suggested
+  },
   priority: {
     type: Number,
     default: 2,
@@ -167,6 +194,36 @@ const TodoSchema = new mongoose.Schema({
 TodoSchema.index({ owner: 1, status: 1, createdAt: -1 });
 TodoSchema.index({ owner: 1, listId: 1 });
 TodoSchema.index({ tags: 1 });
+
+// AUTO-CLASSIFY on create (Elon's Loop Optimization)
+TodoSchema.pre('save', async function(next) {
+  // Only auto-classify on new tasks or when title changes
+  if ((this.isNew || this.isModified('title')) && !this.aiClassification?.manual) {
+    try {
+      // Dynamic import to avoid circular dependencies
+      const { autoClassifyTask } = await import('../services/ai.service.js');
+      const classification = await autoClassifyTask(this.title);
+      
+      this.energyLevel = classification.energy;
+      this.effortMinutes = classification.duration;
+      this.tags = [...new Set([...this.tags, ...classification.tags])]; // Merge tags
+      
+      this.aiClassification = {
+        confidence: classification.confidence || 0.8,
+        suggestedTags: classification.tags,
+        suggestedEnergy: classification.energy,
+        suggestedDuration: classification.duration,
+        classifiedAt: new Date(),
+        manual: false
+      };
+    } catch (error) {
+      console.error('AI classification failed:', error);
+      // Continue without classification - don't block task creation
+    }
+  }
+  
+  next();
+});
 
 // Automatically set completedAt when status changes to 'done'
 TodoSchema.pre('save', function(next) {

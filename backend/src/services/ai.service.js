@@ -3,6 +3,61 @@ import { getGeminiModel as getModel, getGeminiVisionModel, generateContent, gene
 // Re-export for use in controllers
 export { getGeminiModel } from '../config/gemini.js';
 
+// AUTO-CLASSIFY TASK (Elon's Loop Optimization)
+// Automatically infer energy, duration, and tags from task title
+export const autoClassifyTask = async (taskTitle) => {
+  const model = getModel();
+  
+  const prompt = `You are a task classification AI. Analyze this task and return ONLY valid JSON.
+
+TASK: "${taskTitle}"
+
+Return this exact structure:
+{
+  "energy": "low" | "medium" | "high",
+  "duration": <number in minutes>,
+  "tags": ["tag1", "tag2"],
+  "confidence": <0.0 to 1.0>
+}
+
+RULES:
+- Energy: "high" for creative/strategic work, "medium" for standard tasks, "low" for simple admin
+- Duration: realistic estimate (5-120 minutes)
+- Tags: 2-4 relevant tags (lowercase, no #)
+- Confidence: how sure you are (0.7+ for clear tasks)
+
+Examples:
+"Write Q3 report" → {"energy": "high", "duration": 90, "tags": ["work", "report", "writing"], "confidence": 0.9}
+"Buy milk" → {"energy": "low", "duration": 15, "tags": ["shopping", "personal"], "confidence": 0.95}
+"Debug login API" → {"energy": "high", "duration": 60, "tags": ["coding", "bug", "api"], "confidence": 0.85}
+
+OUTPUT (JSON only):`;
+
+  try {
+    const response = await generateContent(model, prompt);
+    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    
+    // Validate and normalize
+    return {
+      energy: ['low', 'medium', 'high'].includes(parsed.energy) ? parsed.energy : 'medium',
+      duration: Math.min(Math.max(parsed.duration || 30, 5), 480),
+      tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : [],
+      confidence: Math.min(Math.max(parsed.confidence || 0.7, 0), 1)
+    };
+  } catch (error) {
+    console.error('autoClassifyTask error:', error);
+    // Fallback: basic heuristics
+    const words = taskTitle.toLowerCase();
+    return {
+      energy: words.includes('write') || words.includes('design') || words.includes('plan') ? 'high' : 'medium',
+      duration: 30,
+      tags: ['general'],
+      confidence: 0.3
+    };
+  }
+};
+
 // TASK B: Agentic AI - JSON-only mode for single task parsing
 export const extractTasksFromTextJSON = async (text) => {
   const model = getModel();
@@ -389,3 +444,72 @@ Return ONLY the JSON object.`;
     return null;
   }
 };
+
+// INTENTION ENGINE (Steve Jobs' "Real World Solution")
+// Generate intelligent daily schedule from user's todos
+export const generateIntentionSchedule = async (userContext) => {
+  const model = getModel();
+  const { todos, currentTime, userEnergy, workHoursStart, workHoursEnd, breaks } = userContext;
+  
+  const prompt = `You are an elite scheduling AI. Create an optimal daily schedule.
+
+CONTEXT:
+- Current Time: ${currentTime}
+- User Energy: ${userEnergy}
+- Work Hours: ${workHoursStart} to ${workHoursEnd}
+- Tasks (${todos.length}):
+${todos.map((t, i) => `${i + 1}. "${t.title}" [${t.energyLevel} energy, ${t.effortMinutes}min, priority: ${t.priority}]`).join('\n')}
+
+RULES:
+1. Schedule high-energy tasks during peak hours (${userEnergy === 'high' ? 'morning' : 'afternoon'})
+2. Group similar tasks (batch processing)
+3. Include 5-10min breaks between focus blocks
+4. Don't overschedule - leave 20% buffer
+5. Prioritize by: deadline > energy match > priority
+
+OUTPUT (JSON only):
+{
+  "schedule": [
+    {
+      "taskId": "task_id or null for break",
+      "startTime": "HH:MM",
+      "endTime": "HH:MM",
+      "title": "task title or 'Break'",
+      "reasoning": "why scheduled here",
+      "energyMatch": 0.0-1.0
+    }
+  ],
+  "summary": "One sentence overview",
+  "warnings": ["warning if overbooked"]
+}`;
+
+  try {
+    const response = await generateContent(model, prompt);
+    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    
+    return {
+      schedule: parsed.schedule || [],
+      summary: parsed.summary || 'Your schedule is ready',
+      warnings: parsed.warnings || [],
+      generatedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Intention Engine error:', error);
+    // Fallback: simple time-based scheduling
+    return {
+      schedule: todos.slice(0, 5).map((t, i) => ({
+        taskId: t._id,
+        startTime: `${9 + i}:00`,
+        endTime: `${9 + i + 1}:00`,
+        title: t.title,
+        reasoning: 'Simple chronological order',
+        energyMatch: 0.5
+      })),
+      summary: 'Basic schedule created',
+      warnings: ['Using fallback scheduler - AI unavailable'],
+      generatedAt: new Date().toISOString()
+    };
+  }
+};
+

@@ -16,6 +16,9 @@ router.post('/analyze/image', aiController.upload.single('image'), aiController.
 // Get AI suggestions
 router.get('/suggestions', aiController.getSuggestions);
 
+// INTENTION ENGINE - Generate daily schedule
+router.post('/schedule/generate', aiController.generateSchedule);
+
 // Task breakdown
 router.post('/task/:taskId/breakdown', aiController.breakdownTask);
 

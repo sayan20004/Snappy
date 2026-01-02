@@ -33,14 +33,21 @@ export default function Sidebar() {
   const canEditList = (list) => {
     if (!user || !list) return false;
     
+    const currentUserId = user.id || user._id;
+    if (!currentUserId) return false;
+    
     // Owner can always edit
-    const isOwner = list.owner && (String(list.owner._id || list.owner) === String(user._id));
+    const ownerId = list.owner?._id || list.owner;
+    const isOwner = ownerId && String(ownerId) === String(currentUserId);
     if (isOwner) return true;
     
     // Check if user is an editor collaborator
     if (list.collaborators) {
       const collaborator = list.collaborators.find(
-        c => String(c.userId._id || c.userId) === String(user._id)
+        c => {
+          const collabId = c.userId?._id || c.userId;
+          return String(collabId) === String(currentUserId);
+        }
       );
       return collaborator && collaborator.role === 'editor';
     }
@@ -50,7 +57,10 @@ export default function Sidebar() {
 
   // Check if user is owner
   const isListOwner = (list) => {
-    return list.owner && (String(list.owner._id || list.owner) === String(user._id));
+    if (!user || !list) return false;
+    const currentUserId = user.id || user._id;
+    const ownerId = list.owner?._id || list.owner;
+    return ownerId && currentUserId && String(ownerId) === String(currentUserId);
   };
 
   const handleManageCollaborators = (list) => {
@@ -223,7 +233,8 @@ export default function Sidebar() {
                       canEdit,
                       showActions,
                       owner: list.owner,
-                      userId: user?._id
+                      userId: user?.id || user?._id,
+                      user: user
                     });
                   }
                   

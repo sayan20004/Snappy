@@ -88,11 +88,26 @@ export default function SmartInbox() {
     try {
       console.log('Converting item to task:', item);
       
+      // Convert priority string to number
+      let priorityNumber = 1; // default: Normal
+      if (typeof item.priority === 'string') {
+        const priorityMap = {
+          'low': 0,
+          'medium': 1,
+          'normal': 1,
+          'high': 2,
+          'urgent': 3
+        };
+        priorityNumber = priorityMap[item.priority.toLowerCase()] ?? 1;
+      } else if (typeof item.priority === 'number') {
+        priorityNumber = Math.min(Math.max(item.priority, 0), 3);
+      }
+      
       // Prepare task data with proper validation
       const taskData = {
         title: item.title || 'Untitled Task',
         note: item.note || item.reasoning || item.content || '',
-        priority: typeof item.priority === 'number' ? Math.min(Math.max(item.priority, 0), 3) : 1,
+        priority: priorityNumber,
         dueAt: item.dueDate || null,
         tags: Array.isArray(item.tags) ? item.tags : [item.source || 'inbox'],
         status: 'todo'

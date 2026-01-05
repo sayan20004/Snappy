@@ -85,35 +85,36 @@ export default function SmartInbox() {
   };
 
   const convertToTask = async (item, skipReview = false) => {
-    // High confidence items (>90%) can be auto-converted
-    const autoConvert = skipReview && item.confidence >= 0.9;
-
     try {
-      if (autoConvert) {
-        // Direct conversion
-        await createTodoMutation.mutateAsync({
-          title: item.title,
-          note: item.note || item.reasoning,
-          priority: item.priority,
-          dueAt: item.dueDate,
-          tags: item.tags || [item.source],
-          suggestedSubtasks: item.suggestedSubtasks,
-          aiClassification: {
-            confidence: item.confidence,
-            source: 'smart-inbox',
-          },
-        });
+      console.log('Converting item to task:', item);
+      
+      // Prepare task data with proper validation
+      const taskData = {
+        title: item.title || 'Untitled Task',
+        note: item.note || item.reasoning || item.content || '',
+        priority: typeof item.priority === 'number' ? Math.min(Math.max(item.priority, 0), 3) : 1,
+        dueAt: item.dueDate || null,
+        tags: Array.isArray(item.tags) ? item.tags : [item.source || 'inbox'],
+        status: 'todo'
+      };
+      
+      console.log('Task data to send:', taskData);
 
+      // Create the task
+      const result = await createTodoMutation.mutateAsync(taskData);
+      console.log('Task created successfully:', result);
+
+      // Remove from inbox after successful creation
+      if (item.id) {
         dismissItem.mutate(item.id);
-        toast.success('Task created!');
-      } else {
-        // Show review modal for low confidence items
-        // TODO: Implement review modal
-        toast.info('Review task before creating (coming soon)');
       }
+      
+      toast.success('✅ Task created successfully!');
     } catch (error) {
-      toast.error('Failed to create task');
-      console.error(error);
+      console.error('Failed to create task - Full error:', error);
+      console.error('Error response:', error.response);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error';
+      toast.error('Failed to create task: ' + errorMsg);
     }
   };
 

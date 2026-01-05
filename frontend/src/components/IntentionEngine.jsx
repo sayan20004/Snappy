@@ -402,10 +402,6 @@ export default function IntentionEngine() {
               })}
             </div>
           </div>
-                </motion.div>
-              );
-            })}
-          </div>
 
           {/* Regenerate button */}
           <button

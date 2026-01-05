@@ -37,6 +37,21 @@ const UserSchema = new mongoose.Schema({
       default: true
     }
   },
+  emailConnection: {
+    provider: {
+      type: String,
+      enum: ['gmail', 'outlook', 'imap'],
+      default: null
+    },
+    email: {
+      type: String,
+      default: null
+    },
+    connectedAt: {
+      type: Date,
+      default: null
+    }
+  },
   createdAt: {
     type: Date,
     default: Date.now

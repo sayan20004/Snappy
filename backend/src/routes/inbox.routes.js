@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.middleware.js';
+import User from '../models/User.model.js';
 
 const router = express.Router();
 
@@ -9,16 +10,16 @@ router.use(authenticate);
 // Email integration endpoints
 router.get('/email/status', async (req, res) => {
   try {
-    // Check if user has email connected
-    // For now, return mock data - implement actual email storage later
-    const emailConnection = req.user.emailConnection || null;
+    // Get user with email connection info
+    const user = await User.findById(req.userId).select('emailConnection');
     
     res.json({
-      connected: !!emailConnection,
-      email: emailConnection?.email || null,
-      provider: emailConnection?.provider || null,
+      connected: !!user?.emailConnection,
+      email: user?.emailConnection?.email || null,
+      provider: user?.emailConnection?.provider || null,
     });
   } catch (error) {
+    console.error('Email status error:', error);
     res.status(500).json({ error: 'Failed to check email status' });
   }
 });
@@ -31,21 +32,48 @@ router.post('/email/connect', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // TODO: Implement actual email connection logic
-    // For now, return success
-    // In production, you'd:
-    // 1. Test the connection with the provided credentials
-    // 2. Store encrypted credentials in database
-    // 3. Use OAuth for better security
-    
+    // Store email connection in user document
+    // NOTE: In production, encrypt the appPassword and use OAuth
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        emailConnection: {
+          provider,
+          email,
+          connectedAt: new Date(),
+          // Don't store the actual password for security
+          // In production, use encrypted tokens or OAuth
+        }
+      },
+      { new: true }
+    ).select('emailConnection');
+
     res.json({
       success: true,
       message: 'Email connected successfully',
-      email,
-      provider,
+      email: user.emailConnection.email,
+      provider: user.emailConnection.provider,
     });
   } catch (error) {
+    console.error('Email connect error:', error);
     res.status(500).json({ error: 'Failed to connect email' });
+  }
+});
+
+router.post('/email/disconnect', async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(
+      req.userId,
+      { $unset: { emailConnection: 1 } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Email disconnected successfully',
+    });
+  } catch (error) {
+    console.error('Email disconnect error:', error);
+    res.status(500).json({ error: 'Failed to disconnect email' });
   }
 });
 

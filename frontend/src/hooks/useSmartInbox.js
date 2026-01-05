@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiAPI } from '../api';
+import api from '../api/client';
 import toast from 'react-hot-toast';
 
 export const useSmartInbox = () => {
@@ -16,6 +17,97 @@ export const useSmartInbox = () => {
       return [];
     },
     staleTime: 30000,
+  });
+
+  // Check email connection status
+  const { data: emailStatus } = useQuery({
+    queryKey: ['email-connection'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/inbox/email/status');
+        return response.data;
+      } catch (error) {
+        return { connected: false };
+      }
+    },
+    staleTime: 60000,
+  });
+
+  // Fetch emails
+  const { data: emails = [], isLoading: emailsLoading, refetch: refetchEmails } = useQuery({
+    queryKey: ['inbox-emails'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/inbox/email/fetch');
+        return response.data.emails || [];
+      } catch (error) {
+        console.error('Failed to fetch emails:', error);
+        return [];
+      }
+    },
+    enabled: emailStatus?.connected === true,
+    staleTime: 30000,
+  });
+
+  // Connect email provider
+  const connectEmail = useMutation({
+    mutationFn: async ({ provider, credentials }) => {
+      const response = await api.post('/inbox/email/connect', {
+        provider,
+        ...credentials,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['email-connection']);
+      toast.success('Email connected successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to connect email: ' + (error.response?.data?.message || error.message));
+    },
+  });
+
+  // Process email with AI
+  const processEmail = useMutation({
+    mutationFn: async (email) => {
+      const emailText = `From: ${email.from}\nSubject: ${email.subject}\n\n${email.body || email.snippet}`;
+      const result = await aiAPI.analyzeText(emailText);
+      return {
+        ...result,
+        id: `email-${email.id}-${Date.now()}`,
+        source: 'email',
+        rawEmail: email,
+        timestamp: new Date(email.date || Date.now()),
+        metadata: {
+          from: email.from,
+          subject: email.subject,
+          emailId: email.id,
+        },
+      };
+    },
+    onMutate: () => {
+      const tempId = `processing-email-${Date.now()}`;
+      setProcessingItems((prev) => new Set(prev).add(tempId));
+      return { tempId };
+    },
+    onSuccess: (data, _, context) => {
+      setProcessingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(context.tempId);
+        return next;
+      });
+      queryClient.setQueryData(['inbox'], (old = []) => [data, ...old]);
+      toast.success('Email analyzed successfully!');
+    },
+    onError: (error, _, context) => {
+      setProcessingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(context.tempId);
+        return next;
+      });
+      toast.error('Failed to analyze email');
+      console.error(error);
+    },
   });
 
   // Process screenshot with AI
@@ -149,5 +241,12 @@ export const useSmartInbox = () => {
     processText,
     processVoice,
     dismissItem,
+    // Email functionality
+    emailStatus,
+    emails,
+    emailsLoading,
+    refetchEmails,
+    connectEmail,
+    processEmail,
   };
 };

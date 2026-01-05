@@ -18,6 +18,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import exportRoutes from './routes/export.routes.js';
 import focusRoutes from './routes/focus.routes.js';
 import aiRoutes from './routes/ai.routes.js';
+import inboxRoutes from './routes/inbox.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import { 
@@ -154,6 +155,7 @@ app.use('/api/export', exportRoutes);
 app.use('/api/import', exportRoutes);
 app.use('/api/focus', focusRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/inbox', inboxRoutes);
 
 // Socket.io setup with error handling
 setupSocketHandlers(io);

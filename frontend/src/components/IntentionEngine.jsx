@@ -26,7 +26,7 @@ export default function IntentionEngine() {
 
     try {
       // REAL AI CALL - No fake logic
-      const response = await api.post('/api/ai/schedule/generate', {
+      const response = await api.post('/ai/schedule/generate', {
         workHoursStart: '09:00',
         workHoursEnd: '17:00',
         userEnergy

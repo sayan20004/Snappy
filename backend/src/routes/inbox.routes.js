@@ -1,8 +1,32 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.middleware.js';
 import User from '../models/User.model.js';
+import crypto from 'crypto';
+import { fetchGmailMessages, fetchOutlookMessages } from '../services/email.service.js';
 
 const router = express.Router();
+
+// Simple encryption for storing credentials (use proper encryption in production)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-secret-key-here!!';
+const ALGORITHM = 'aes-256-cbc';
+
+const encrypt = (text) => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+};
+
+const decrypt = (text) => {
+  const textParts = text.split(':');
+  const iv = Buffer.from(textParts.shift(), 'hex');
+  const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
+};
 
 // All routes require authentication
 router.use(authenticate);
@@ -32,8 +56,31 @@ router.post('/email/connect', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // Store email connection in user document
-    // NOTE: In production, encrypt the appPassword and use OAuth
+    // Test the connection first
+    try {
+      console.log('Testing email connection for:', email);
+      let testEmails;
+      
+      if (provider === 'gmail') {
+        testEmails = await fetchGmailMessages(email, appPassword, 1);
+      } else if (provider === 'outlook') {
+        testEmails = await fetchOutlookMessages(email, appPassword, 1);
+      } else {
+        return res.status(400).json({ error: 'Unsupported provider' });
+      }
+      
+      console.log('Connection test successful, found', testEmails.length, 'messages');
+    } catch (testError) {
+      console.error('Email connection test failed:', testError);
+      return res.status(401).json({ 
+        error: 'Failed to connect to email. Please check your credentials and ensure IMAP is enabled.',
+        details: testError.message
+      });
+    }
+
+    // Store encrypted credentials in user document
+    const encryptedPassword = encrypt(appPassword);
+    
     const user = await User.findByIdAndUpdate(
       req.userId,
       {
@@ -41,8 +88,7 @@ router.post('/email/connect', async (req, res) => {
           provider,
           email,
           connectedAt: new Date(),
-          // Don't store the actual password for security
-          // In production, use encrypted tokens or OAuth
+          encryptedPassword, // Store encrypted
         }
       },
       { new: true }
@@ -56,7 +102,7 @@ router.post('/email/connect', async (req, res) => {
     });
   } catch (error) {
     console.error('Email connect error:', error);
-    res.status(500).json({ error: 'Failed to connect email' });
+    res.status(500).json({ error: 'Failed to connect email', details: error.message });
   }
 });
 
@@ -79,64 +125,45 @@ router.post('/email/disconnect', async (req, res) => {
 
 router.get('/email/fetch', async (req, res) => {
   try {
-    // TODO: Implement actual email fetching
-    // For now, return mock emails
+    // Get user's email connection
+    const user = await User.findById(req.userId).select('emailConnection');
     
-    const mockEmails = [
-      {
-        id: 'email1',
-        from: 'team@company.com',
-        subject: 'Q1 Project Review Meeting',
-        snippet: 'Hi, we need to schedule the Q1 project review. Please confirm your availability for next week...',
-        body: 'Hi,\n\nWe need to schedule the Q1 project review meeting. Please confirm your availability for next week. Key topics to cover:\n\n1. Project milestones\n2. Budget review\n3. Next quarter planning\n\nBest regards,\nTeam',
-        date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        unread: true,
-      },
-      {
-        id: 'email2',
-        from: 'notifications@github.com',
-        subject: '[GitHub] Pull Request Review Required',
-        snippet: 'A new pull request needs your review: Feature/authentication-v2...',
-        body: 'A new pull request needs your review:\n\nFeature/authentication-v2\n\nChanges:\n- Implemented JWT refresh tokens\n- Added password reset flow\n- Updated security tests\n\nPlease review at your earliest convenience.',
-        date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        unread: true,
-      },
-      {
-        id: 'email3',
-        from: 'client@business.com',
-        subject: 'Urgent: Website Deployment Issue',
-        snippet: 'Our production website is showing a 503 error. Can you please investigate ASAP?...',
-        body: 'Hi,\n\nOur production website is showing a 503 error since this morning. Can you please investigate ASAP?\n\nURL: https://example.com\nError started: ~9:00 AM\nAffected pages: All pages\n\nThis is affecting our business operations. Please prioritize.',
-        date: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        unread: true,
-      },
-      {
-        id: 'email4',
-        from: 'HR@company.com',
-        subject: 'Complete Your Annual Performance Review',
-        snippet: 'Please complete your annual performance review by end of this week...',
-        body: 'Hi,\n\nPlease complete your annual performance review by end of this week. The form is available in the HR portal.\n\nDeadline: Friday, 5 PM\n\nIf you have any questions, please reach out to HR.',
-        date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        unread: false,
-      },
-      {
-        id: 'email5',
-        from: 'design@agency.com',
-        subject: 'New Design Mockups Ready for Review',
-        snippet: 'The new homepage designs are ready. Please review and provide feedback...',
-        body: 'Hi,\n\nThe new homepage designs are ready for your review. Please check the attached Figma link and provide feedback by Wednesday.\n\nLink: [Figma Design]\n\nKey changes:\n- Updated hero section\n- New testimonials layout\n- Mobile-first approach\n\nLooking forward to your thoughts!',
-        date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        unread: false,
-      },
-    ];
+    if (!user?.emailConnection?.encryptedPassword) {
+      return res.status(400).json({ error: 'Email not connected' });
+    }
+
+    const { provider, email, encryptedPassword } = user.emailConnection;
+    
+    // Decrypt the password
+    const appPassword = decrypt(encryptedPassword);
+    
+    // Fetch real emails
+    let emails;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    console.log('Fetching emails for:', email, 'provider:', provider);
+    
+    if (provider === 'gmail') {
+      emails = await fetchGmailMessages(email, appPassword, limit);
+    } else if (provider === 'outlook') {
+      emails = await fetchOutlookMessages(email, appPassword, limit);
+    } else {
+      return res.status(400).json({ error: 'Unsupported email provider' });
+    }
+
+    console.log('Fetched', emails.length, 'emails');
 
     res.json({
-      emails: mockEmails,
-      total: mockEmails.length,
-      unread: mockEmails.filter(e => e.unread).length,
+      emails: emails,
+      total: emails.length,
+      unread: emails.filter(e => e.unread).length,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch emails' });
+    console.error('Email fetch error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch emails',
+      details: error.message 
+    });
   }
 });
 

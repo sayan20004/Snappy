@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    encryptedPassword: {
+      type: String,
+      default: null,
+      select: false // Don't include by default for security
+    },
     connectedAt: {
       type: Date,
       default: null
